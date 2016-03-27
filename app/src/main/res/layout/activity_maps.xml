@@ -1,8 +1,29 @@
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    xmlns:map="http://schemas.android.com/apk/res-auto"
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:id="@+id/map"
-    tools:context="com.cs4624.poison.ivymap.MapsActivity"
-    android:name="com.google.android.gms.maps.SupportMapFragment"/>
+    android:layout_height="match_parent">
+    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:map="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:id="@+id/map"
+        tools:context="com.cs4624.poison.ivymap.MapsActivity"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        tools:layout="@layout/activity_maps" />
+    <Button
+        android:id="@+id/dbCreate"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:text="Create DB"
+        android:textSize="24sp" />
+    <Button
+        android:id="@+id/dbDelete"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:text="Delete DB"
+        android:textSize="24sp" />
+</LinearLayout>

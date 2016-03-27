@@ -1,18 +1,23 @@
 package com.cs4624.poison.ivymap;
 
 import android.Manifest;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.nfc.Tag;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.widget.Toast;
+import com.cs4624.poison.ivymap.PoisonIvyContract.PoisonIvy;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -20,6 +25,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -36,8 +43,32 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-    }
 
+        final Button createDb = (Button) findViewById(R.id.dbCreate);
+        createDb.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                public void onClick(View v) {
+                    DatabaseHandler db = new DatabaseHandler(v.getContext());
+
+                    // Inserting PIs
+                    Log.d("Insert: ", "Inserting ..");
+                    db.addPI(new PI("c", 11.000, longitude));
+                    db.addPI(new PI("l", latitude, 0.111));
+                    db.addPI(new PI("c", latitude, longitude));
+
+                    // Reading all PIs
+                    Log.d("Reading: ", "Reading all PIs..");
+                    List<PI> PIs = db.getAllPIs();
+
+                    for (PI cn : PIs) {
+                        String log = "Id: "+cn.getId()+" ,Latitude: " + cn.getLatitude() + " ,Longitude: " + cn.getLongitude();
+                        // Writing PIs to log
+                        Log.d("Name: ", log);
+                    }
+                });
+            }
+        }
+    }
 
 
     /**

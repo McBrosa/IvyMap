@@ -6,14 +6,32 @@ package com.cs4624.poison.ivymap;
 public class PI {
     private String type;
     private long leaf_id;
+    private int id;
     double latitude;
     double longitude;
 
-    public PI(long leaf_id, String type, double latitude, double longitude) {
-        this.leaf_id = leaf_id;
-        this.type= type;
+    public PI(){}
+
+
+    public PI(String type, double latitude, double longitude) {
+        this.type = type;
         this.latitude = latitude;
         this.longitude = longitude;
+    }
+
+    public PI(long leaf_id, String type, double latitude, double longitude) {
+        this.leaf_id = leaf_id;
+        this.type = type;
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getType() {
