@@ -47,7 +47,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         final Button createDb = (Button) findViewById(R.id.dbCreate);
         createDb.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                public void onClick(View v) {
                     DatabaseHandler db = new DatabaseHandler(v.getContext());
 
                     // Inserting PIs
@@ -65,9 +64,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         // Writing PIs to log
                         Log.d("Name: ", log);
                     }
-                });
             }
-        }
+        });
     }
 
 
