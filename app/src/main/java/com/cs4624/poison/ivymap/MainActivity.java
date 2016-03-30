@@ -1,10 +1,19 @@
 package com.cs4624.poison.ivymap;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.DownloadManager;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -45,6 +54,8 @@ public class MainActivity extends Activity {
     private double longitude;
     private double latitude;
 
+    private final static int MY_PERMISSIONS_REQUEST_LOCATION = 0;
+    public static int OVERLAY_PERMISSION_REQ_CODE = 1234;
 
     private String insertURL = "http://vtpiat.netau.net/insert.php";
     private String showURL = "http://vtpiat.netau.net/show.php";
@@ -52,6 +63,16 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + getPackageName()));
+            startActivityForResult(intent, OVERLAY_PERMISSION_REQ_CODE);
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
+                    MY_PERMISSIONS_REQUEST_LOCATION);
+        }
 
         leafId = (EditText) findViewById(R.id.leafId);
         leafId.setHint("Leaf ID");

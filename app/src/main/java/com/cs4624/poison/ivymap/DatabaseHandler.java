@@ -38,7 +38,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String COMMA_SEP = ",";
     String SQL_CREATE_TABLE =
             "CREATE TABLE " + TABLE_NAME + " (" +
-                    COLUMN_NAME_ID + INT_TYPE + NOT_NULL + " AUTO_INCREMENT" + COMMA_SEP +
+                    COLUMN_NAME_ID + INT_TYPE + NOT_NULL + " AUTOINCREMENT" + COMMA_SEP +
                     COLUMN_NAME_lEAF_ID + BIGINT_TYPE + NULL + COMMA_SEP +
                     COLUMN_NAME_LEAF_TYPE + CHAR_1 + NULL + COMMA_SEP +
                     COLUMN_NAME_LATITUDE + DOUBLE_TYPE + NOT_NULL + COMMA_SEP +

@@ -31,4 +31,6 @@ dependencies {
     compile 'org.jbundle.util.osgi.wrapped:org.jbundle.util.osgi.wrapped.org.apache.http.client:4.1.2'
 
     compile project(':volley')
+
+    compile 'com.google.android.gms:play-services:6.+'
 }
