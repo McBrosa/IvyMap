@@ -49,7 +49,7 @@ import java.util.Map;
 
 public class MainActivity extends Activity {
     private EditText leafId, leafType;
-    private Button insert, show, sync;
+    private Button insert, delete, show, sync, localTable;
     private TextView records, latText, longText;
     private RequestQueue requestQueue;
     private GPSTracker location;
@@ -84,6 +84,8 @@ public class MainActivity extends Activity {
         leafType.setHint("Leaf Type");
         insert = (Button) findViewById(R.id.insert);
         show = (Button) findViewById(R.id.show);
+        delete =(Button) findViewById(R.id.delete);
+        localTable =(Button) findViewById(R.id.localTable);
         sync =(Button) findViewById(R.id.sync);
         records = (TextView) findViewById(R.id.records);
         records.setMovementMethod(new ScrollingMovementMethod());
@@ -134,40 +136,21 @@ public class MainActivity extends Activity {
             }
         });
 
+        // Inserts records into the local SQLite database
         insert.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
                 final String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
                 PI poisonIvy = new PI(leafId.getText().toString(),leafType.getText().toString(),latitude,longitude,timeStamp,false);
                 database.addPI(poisonIvy);
-//                StringRequest request =  new StringRequest(Request.Method.POST, insertURL, new Response.Listener<String>() {
-//                    @Override
-//                    public void onResponse(String response) {
-//
-//                    }
-//                }, new Response.ErrorListener() {
-//                    @Override
-//                    public void onErrorResponse(VolleyError error) {
-//                    }
-//                }){
-//                    @Override
-//                    protected Map<String, String> getParams() throws AuthFailureError{
-//                        Map<String, String> parameters = new HashMap<String, String>();
-//                        parameters.put("leaf_id", leafId.getText().toString());
-//                        parameters.put("leaf_type", leafType.getText().toString());
-//                        parameters.put("latitude", Double.toString(latitude));
-//                        parameters.put("longitude", Double.toString(longitude));
-//                        parameters.put("date_time", timeStamp);
-//                        return parameters;
-//                    }
-//                };
-//                requestQueue.add(request);
+
                 Toast.makeText(getApplicationContext(), "Record Inserted", Toast.LENGTH_SHORT).show();
                 leafType.setText("");
                 leafId.setText("");
             }
         });
 
+        // Gets all the unsynced poison ivy records and inserts them into the database.
         sync.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
@@ -181,6 +164,7 @@ public class MainActivity extends Activity {
                     }, new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError error) {
+                            Toast.makeText(getApplicationContext(), "Error uploading... Please try again", Toast.LENGTH_SHORT).show();
                         }
                     }){
                         @Override
@@ -195,10 +179,28 @@ public class MainActivity extends Activity {
                         }
                     };
                     requestQueue.add(request);
+                    // Lets the local database know the record has been synced to the server.
+                    pi.setSync(true);
+                    database.updateSyncStatus(pi);
                 }
                 Toast.makeText(getApplicationContext(), "Database updated", Toast.LENGTH_SHORT).show();
                 leafType.setText("");
                 leafId.setText("");
+            }
+        });
+        delete.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                database.deleteMostRecentPI();
+                Toast.makeText(getApplicationContext(), "Most Recent Record was Deleted", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        localTable.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                records.setText("");
+                records.append(database.getTableAsString());
             }
         });
     }

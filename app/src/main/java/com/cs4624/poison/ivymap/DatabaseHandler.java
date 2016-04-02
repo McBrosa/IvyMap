@@ -21,8 +21,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     // Contacts table name
     private static final String TABLE_NAME = "poison_ivy";
 
-    private Context context;
-
     // Contacts Table Columns names
     private static final String COLUMN_NAME_ID = "id";
     private static final String COLUMN_NAME_lEAF_ID = "leaf_id";
@@ -35,7 +33,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     // Helpers for MySQL
     private static final String DOUBLE_TYPE = " DOUBLE";
     private static final String INT_TYPE = " INT";
-    private static final String BIGINT_TYPE = " BIGINT";
     private static final String CHAR_1 = " NCHAR(1)";
     private static final String NOT_NULL = " NOT NULL";
     private static final String TIMESTAMP = " VARCHAR(25)";
@@ -50,14 +47,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                     COLUMN_NAME_LONGITUDE + DOUBLE_TYPE + NOT_NULL + COMMA_SEP +
                     COLUMN_NAME_TIMESTAMP + TIMESTAMP + NOT_NULL + COMMA_SEP +
                     COLUMN_NAME_SYNC + INT_TYPE + NOT_NULL +
-                    ");"; //CONSTRAINT poison_ivy_pk PRIMARY KEY (id)
+                    ");";
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + TABLE_NAME;
 
 
     public DatabaseHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        this.context = context;
     }
 
     // Creating Tables
@@ -141,26 +137,25 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return piList;
     }
 
-//    // Updating single contact
-//    public int updateContact(PI contact) {
-//        SQLiteDatabase db = this.getWritableDatabase();
-//
-//        ContentValues values = new ContentValues();
-//        values.put(KEY_NAME, contact.getName());
-//        values.put(KEY_PH_NO, contact.getPhoneNumber());
-//
-//        // updating row
-//        return db.update(TABLE_NAME, values, KEY_ID + " = ?",
-//                new String[] { String.valueOf(contact.getID()) });
-//    }
+    // Updating sync status so it is true for @contact
+    public int updateSyncStatus(PI contact) {
+        SQLiteDatabase db = this.getWritableDatabase();
 
-    // Deleting single contact
-//    public void deletePI(PI poisonIvy) {
-//        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_NAME_SYNC, contact.getSync());
+
+        // updating row
+        return db.update(TABLE_NAME, values, COLUMN_NAME_TIMESTAMP + " = ?",
+                new String[] { String.valueOf(contact.getTimeStamp()) });
+    }
+
+    public void deleteMostRecentPI() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DELETE FROM " + TABLE_NAME + " WHERE id = (SELECT MAX(id) FROM " + TABLE_NAME +");");
 //        db.delete(TABLE_NAME, COLUMN_NAME_ID + " = ?",
-//                new String[] { String.valueOf(poisonIvy.getId()) });
-//        db.close();
-//    }
+//                new String[]{String.valueOf("SELECT MAX(" + COLUMN_NAME_ID + ") FROM " + TABLE_NAME)});
+        db.close();
+    }
 
 
     // Getting contacts Count
@@ -172,6 +167,34 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         // return count
         return cursor.getCount();
+    }
+
+
+    /**
+     * Helper function that parses a given table into a string
+     * and returns it for easy printing. The string consists of
+     * the table name and then each row is iterated through with
+     * column_name: value pairs printed out.
+     *
+     * @return the table tableName as a string
+     */
+    public String getTableAsString() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String tableString = String.format("Table %s:\n", TABLE_NAME);
+        Cursor allRows = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
+        if (allRows.moveToFirst()) {
+            String[] columnNames = allRows.getColumnNames();
+            do {
+                for (String name : columnNames) {
+                    tableString += String.format("%s: %s\n", name,
+                            allRows.getString(allRows.getColumnIndex(name)));
+                }
+                tableString += "\n";
+
+            } while (allRows.moveToNext());
+        }
+
+        return tableString;
     }
 
 }
