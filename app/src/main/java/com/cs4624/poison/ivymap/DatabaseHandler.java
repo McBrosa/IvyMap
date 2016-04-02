@@ -21,41 +21,48 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     // Contacts table name
     private static final String TABLE_NAME = "poison_ivy";
 
+    private Context context;
+
     // Contacts Table Columns names
     private static final String COLUMN_NAME_ID = "id";
     private static final String COLUMN_NAME_lEAF_ID = "leaf_id";
     private static final String COLUMN_NAME_LEAF_TYPE = "leaf_type";
     private static final String COLUMN_NAME_LATITUDE = "latitude";
     private static final String COLUMN_NAME_LONGITUDE = "longitude";
+    private static final String COLUMN_NAME_TIMESTAMP = "date_time";
+    private static final String COLUMN_NAME_SYNC = "sync";
 
     // Helpers for MySQL
-    private static final String DOUBLE_TYPE = " decimal(16,13)";
-    private static final String INT_TYPE = " int";
-    private static final String BIGINT_TYPE = " bigint";
-    private static final String CHAR_1 = " char(1)";
+    private static final String DOUBLE_TYPE = " DOUBLE";
+    private static final String INT_TYPE = " INT";
+    private static final String BIGINT_TYPE = " BIGINT";
+    private static final String CHAR_1 = " NCHAR(1)";
     private static final String NOT_NULL = " NOT NULL";
+    private static final String TIMESTAMP = " VARCHAR(25)";
     private static final String NULL = " NULL";
     private static final String COMMA_SEP = ",";
     String SQL_CREATE_TABLE =
-            "CREATE TABLE " + TABLE_NAME + " (" +
-                    COLUMN_NAME_ID + INT_TYPE + NOT_NULL + " AUTOINCREMENT" + COMMA_SEP +
-                    COLUMN_NAME_lEAF_ID + BIGINT_TYPE + NULL + COMMA_SEP +
+            "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" +
+                    COLUMN_NAME_ID + " INTEGER PRIMARY KEY AUTOINCREMENT" + COMMA_SEP +
+                    COLUMN_NAME_lEAF_ID + " TEXT" + NULL + COMMA_SEP +
                     COLUMN_NAME_LEAF_TYPE + CHAR_1 + NULL + COMMA_SEP +
                     COLUMN_NAME_LATITUDE + DOUBLE_TYPE + NOT_NULL + COMMA_SEP +
                     COLUMN_NAME_LONGITUDE + DOUBLE_TYPE + NOT_NULL + COMMA_SEP +
-                    "CONSTRAINT poison_ivy_pk PRIMARY KEY (id))";
+                    COLUMN_NAME_TIMESTAMP + TIMESTAMP + NOT_NULL + COMMA_SEP +
+                    COLUMN_NAME_SYNC + INT_TYPE + NOT_NULL +
+                    ");"; //CONSTRAINT poison_ivy_pk PRIMARY KEY (id)
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + TABLE_NAME;
 
 
     public DatabaseHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        this.context = context;
     }
 
     // Creating Tables
     @Override
     public void onCreate(SQLiteDatabase db) {
-
         db.execSQL(SQL_CREATE_TABLE);
     }
 
@@ -71,7 +78,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * All CRUD(Create, Read, Update, Delete) Operations
      */
 
-    // Adding new contact
+    // Adding new poison ivy record
     void addPI(PI poisonIvy) {
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -80,6 +87,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(COLUMN_NAME_LEAF_TYPE, poisonIvy.getType());
         values.put(COLUMN_NAME_LATITUDE, poisonIvy.getLatitude());
         values.put(COLUMN_NAME_LONGITUDE, poisonIvy.getLongitude());
+        values.put(COLUMN_NAME_TIMESTAMP, poisonIvy.getTimeStamp());
+        values.put(COLUMN_NAME_SYNC, poisonIvy.getSync());
 
         // Inserting Row
         db.insert(TABLE_NAME, null, values);
@@ -98,16 +107,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 //        PI poisonIvy = new PI(cursor.getString(0), Integer.parseInt(cursor.getString(0)),
 //                cursor.getString(1), cursor.getString(2));
-        PI poisonIvy = new PI(cursor.getString(0),Double.parseDouble(cursor.getString(1)),Double.parseDouble(cursor.getString(2)));
+        PI poisonIvy = new PI(cursor.getString(0),Double.parseDouble(cursor.getString(1)),Double.parseDouble(cursor.getString(2)), cursor.getString(3), Boolean.parseBoolean(cursor.getString(4)));
         // return contact
         return poisonIvy;
     }
 
     // Getting All Contacts
-    public List<PI> getAllPIs() {
-        List<PI> contactList = new ArrayList<PI>();
+    public List<PI> getAllUnsyncedPIs() {
+        List<PI> piList = new ArrayList<PI>();
         // Select All Query
-        String selectQuery = "SELECT  * FROM " + TABLE_NAME;
+        String selectQuery = "SELECT * FROM " + TABLE_NAME + " where sync=0";
 
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -116,16 +125,20 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             do {
                 PI poisonIvy = new PI();
-                poisonIvy.setType(cursor.getString(0));
-                poisonIvy.setLatitude(Double.parseDouble(cursor.getString(1)));
-                poisonIvy.setLongitude(Double.parseDouble(cursor.getString(2)));
+                poisonIvy.setLeaf_id(cursor.getString(cursor.getColumnIndex(COLUMN_NAME_lEAF_ID)));
+                poisonIvy.setType(cursor.getString(cursor.getColumnIndex(COLUMN_NAME_LEAF_TYPE)));
+                poisonIvy.setLatitude(Double.parseDouble(cursor.getString(cursor.getColumnIndex(COLUMN_NAME_LATITUDE))));
+                poisonIvy.setLongitude(Double.parseDouble(cursor.getString(cursor.getColumnIndex(COLUMN_NAME_LONGITUDE))));
+                poisonIvy.setTimeStamp(cursor.getString(cursor.getColumnIndex(COLUMN_NAME_TIMESTAMP)));
+                // Lets the local database know the record is synced to server
+                poisonIvy.setSync(true);
                 // Adding contact to list
-                contactList.add(poisonIvy);
+                piList.add(poisonIvy);
             } while (cursor.moveToNext());
         }
 
         // return contact list
-        return contactList;
+        return piList;
     }
 
 //    // Updating single contact
@@ -142,12 +155,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 //    }
 
     // Deleting single contact
-    public void deletePI(PI poisonIvy) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_NAME, COLUMN_NAME_ID + " = ?",
-                new String[] { String.valueOf(poisonIvy.getId()) });
-        db.close();
-    }
+//    public void deletePI(PI poisonIvy) {
+//        SQLiteDatabase db = this.getWritableDatabase();
+//        db.delete(TABLE_NAME, COLUMN_NAME_ID + " = ?",
+//                new String[] { String.valueOf(poisonIvy.getId()) });
+//        db.close();
+//    }
 
 
     // Getting contacts Count

@@ -5,33 +5,29 @@ package com.cs4624.poison.ivymap;
  */
 public class PI {
     private String type;
-    private long leaf_id;
-    private int id;
-    double latitude;
-    double longitude;
+    private String leaf_id;
+    private double latitude;
+    private double longitude;
+    private String timeStamp;
+    private boolean sync;
 
     public PI(){}
 
-
-    public PI(String type, double latitude, double longitude) {
+    public PI(String type, double latitude, double longitude, String timeStamp, boolean sync) {
         this.type = type;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.timeStamp = timeStamp;
+        this.sync = sync;
     }
 
-    public PI(long leaf_id, String type, double latitude, double longitude) {
+    public PI(String leaf_id, String type, double latitude, double longitude, String timeStamp, boolean sync) {
         this.leaf_id = leaf_id;
         this.type = type;
         this.latitude = latitude;
         this.longitude = longitude;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
+        this.timeStamp = timeStamp;
+        this.sync = sync;
     }
 
     public String getType() {
@@ -58,11 +54,27 @@ public class PI {
         this.longitude = longitude;
     }
 
-    public long getLeaf_id() {
+    public String getLeaf_id() {
         return leaf_id;
     }
 
-    public void setLeaf_id(long leaf_id) {
+    public void setLeaf_id(String leaf_id) {
         this.leaf_id = leaf_id;
+    }
+
+    public String getTimeStamp() {
+        return timeStamp;
+    }
+
+    public void setTimeStamp(String timeStamp) {
+        this.timeStamp = timeStamp;
+    }
+
+    public boolean getSync() {
+        return sync;
+    }
+
+    public void setSync(boolean sync) {
+        this.sync = sync;
     }
 }

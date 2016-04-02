@@ -26,6 +26,8 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+import android.text.method.ScrollingMovementMethod;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -47,12 +49,13 @@ import java.util.Map;
 
 public class MainActivity extends Activity {
     private EditText leafId, leafType;
-    private Button insert, show;
+    private Button insert, show, sync;
     private TextView records, latText, longText;
     private RequestQueue requestQueue;
     private GPSTracker location;
     private double longitude;
     private double latitude;
+    private DatabaseHandler database;
 
     private final static int MY_PERMISSIONS_REQUEST_LOCATION = 0;
     public static int OVERLAY_PERMISSION_REQ_CODE = 1234;
@@ -74,13 +77,16 @@ public class MainActivity extends Activity {
                     MY_PERMISSIONS_REQUEST_LOCATION);
         }
 
+        database = new DatabaseHandler(getApplicationContext());
         leafId = (EditText) findViewById(R.id.leafId);
         leafId.setHint("Leaf ID");
         leafType = (EditText) findViewById(R.id.leafType);
         leafType.setHint("Leaf Type");
         insert = (Button) findViewById(R.id.insert);
         show = (Button) findViewById(R.id.show);
+        sync =(Button) findViewById(R.id.sync);
         records = (TextView) findViewById(R.id.records);
+        records.setMovementMethod(new ScrollingMovementMethod());
         latText = (TextView) findViewById(R.id.latText);
         longText = (TextView) findViewById(R.id.longText);
 
@@ -91,8 +97,8 @@ public class MainActivity extends Activity {
             longitude = location.getLongitude();
         }
 
-        latText.setText(Double.toString(latitude));
-        longText.setText(Double.toString(longitude));
+        latText.setText("Lat: " + Double.toString(latitude));
+        longText.setText("Long: " + Double.toString(longitude));
 
         requestQueue = Volley.newRequestQueue(getApplicationContext());
 
@@ -132,28 +138,67 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view){
                 final String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-                StringRequest request =  new StringRequest(Request.Method.POST, insertURL, new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
+                PI poisonIvy = new PI(leafId.getText().toString(),leafType.getText().toString(),latitude,longitude,timeStamp,false);
+                database.addPI(poisonIvy);
+//                StringRequest request =  new StringRequest(Request.Method.POST, insertURL, new Response.Listener<String>() {
+//                    @Override
+//                    public void onResponse(String response) {
+//
+//                    }
+//                }, new Response.ErrorListener() {
+//                    @Override
+//                    public void onErrorResponse(VolleyError error) {
+//                    }
+//                }){
+//                    @Override
+//                    protected Map<String, String> getParams() throws AuthFailureError{
+//                        Map<String, String> parameters = new HashMap<String, String>();
+//                        parameters.put("leaf_id", leafId.getText().toString());
+//                        parameters.put("leaf_type", leafType.getText().toString());
+//                        parameters.put("latitude", Double.toString(latitude));
+//                        parameters.put("longitude", Double.toString(longitude));
+//                        parameters.put("date_time", timeStamp);
+//                        return parameters;
+//                    }
+//                };
+//                requestQueue.add(request);
+                Toast.makeText(getApplicationContext(), "Record Inserted", Toast.LENGTH_SHORT).show();
+                leafType.setText("");
+                leafId.setText("");
+            }
+        });
 
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                    }
-                }){
-                    @Override
-                    protected Map<String, String> getParams() throws AuthFailureError{
-                        Map<String, String> parameters = new HashMap<String, String>();
-                        parameters.put("leaf_id", leafId.getText().toString());
-                        parameters.put("leaf_type", leafType.getText().toString());
-                        parameters.put("latitude", Double.toString(latitude));
-                        parameters.put("longitude", Double.toString(longitude));
-                        parameters.put("date_time", timeStamp);
-                        return parameters;
-                    }
-                };
-                requestQueue.add(request);
+        sync.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                for(final PI pi : database.getAllUnsyncedPIs())
+                {
+                    StringRequest request =  new StringRequest(Request.Method.POST, insertURL, new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                        }
+                    }){
+                        @Override
+                        protected Map<String, String> getParams() throws AuthFailureError{
+                            Map<String, String> parameters = new HashMap<String, String>();
+                            parameters.put("leaf_id", pi.getLeaf_id());
+                            parameters.put("leaf_type", pi.getType());
+                            parameters.put("latitude", Double.toString(pi.getLatitude()));
+                            parameters.put("longitude", Double.toString(pi.getLongitude()));
+                            parameters.put("date_time", pi.getTimeStamp());
+                            return parameters;
+                        }
+                    };
+                    requestQueue.add(request);
+                }
+                Toast.makeText(getApplicationContext(), "Database updated", Toast.LENGTH_SHORT).show();
+                leafType.setText("");
+                leafId.setText("");
             }
         });
     }
