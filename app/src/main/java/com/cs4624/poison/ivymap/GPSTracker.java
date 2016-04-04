@@ -1,26 +1,28 @@
+/*
+* This class provides network location and GPS services. It first tries to get a location
+* base on network location and then resorts to GPS. The errors are due to Android 6.0 which
+* requires permission to access users location, this is handled in the MainActivity.
+*
+* @author Nathan Rosa
+* @date 4/3/16
+* @version 1.0
+*/
+
 package com.cs4624.poison.ivymap;
 
-import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.Settings;
-import android.support.v4.app.ActivityCompat;
-
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
-
-import android.support.v4.content.ContextCompat;
-import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class GPSTracker extends Service implements LocationListener {
@@ -40,10 +42,10 @@ public class GPSTracker extends Service implements LocationListener {
     double longitude; // longitude
 
     // The minimum distance to change Updates in meters
-    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 3; // 10 meters
+    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1; // 3 meters
 
     // The minimum time between updates in milliseconds
-    private static final long MIN_TIME_BW_UPDATES = 1000 * 60 * 2; // 1 minute
+    private static final long MIN_TIME_BW_UPDATES = 1000 * 1 * 1; // 2 minute
 
     // Declaring a Location Manager
     protected LocationManager locationManager;
@@ -75,7 +77,6 @@ public class GPSTracker extends Service implements LocationListener {
                             LocationManager.NETWORK_PROVIDER,
                             MIN_TIME_BW_UPDATES,
                             MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-                    Log.d("Network", "Network");
                     if (locationManager != null) {
                         location = locationManager
                                 .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
@@ -92,7 +93,6 @@ public class GPSTracker extends Service implements LocationListener {
                                 LocationManager.GPS_PROVIDER,
                                 MIN_TIME_BW_UPDATES,
                                 MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-                        Log.d("GPS Enabled", "GPS Enabled");
                         if (locationManager != null) {
                             location = locationManager
                                     .getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -156,7 +156,7 @@ public class GPSTracker extends Service implements LocationListener {
 
     /**
      * Function to show settings alert dialog
-     * On pressing Settings button will lauch Settings Options
+     * On pressing Settings button will launch Settings Options
      * */
     public void showSettingsAlert(){
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(mContext);
@@ -188,9 +188,12 @@ public class GPSTracker extends Service implements LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
-//        this.location = location;
-//        getLatitude();
-//        getLongitude();
+        latitude = location.getLatitude();
+        longitude = location.getLongitude();
+        TextView latTxt = (TextView) ((Activity) mContext).findViewById(R.id.latText);
+        latTxt.setText("Lat: " + latitude);
+        TextView longTxt = (TextView) ((Activity) mContext).findViewById(R.id.longText);
+        longTxt.setText("Long: " + longitude);
     }
 
     @Override
@@ -203,6 +206,7 @@ public class GPSTracker extends Service implements LocationListener {
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
+        Toast.makeText(mContext, "Current Provider: " + provider +  ", # Satellites: " + extras.toString(), Toast.LENGTH_SHORT).show();
     }
 
     @Override

@@ -31,7 +31,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String COLUMN_NAME_SYNC = "sync";
 
     // Helpers for MySQL
-    private static final String DOUBLE_TYPE = " DOUBLE";
+    private static final String TEXT = " TEXT";
     private static final String INT_TYPE = " INT";
     private static final String CHAR_1 = " NCHAR(1)";
     private static final String NOT_NULL = " NOT NULL";
@@ -43,8 +43,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                     COLUMN_NAME_ID + " INTEGER PRIMARY KEY AUTOINCREMENT" + COMMA_SEP +
                     COLUMN_NAME_lEAF_ID + " TEXT" + NULL + COMMA_SEP +
                     COLUMN_NAME_LEAF_TYPE + CHAR_1 + NULL + COMMA_SEP +
-                    COLUMN_NAME_LATITUDE + DOUBLE_TYPE + NOT_NULL + COMMA_SEP +
-                    COLUMN_NAME_LONGITUDE + DOUBLE_TYPE + NOT_NULL + COMMA_SEP +
+                    COLUMN_NAME_LATITUDE + TEXT + NOT_NULL + COMMA_SEP +
+                    COLUMN_NAME_LONGITUDE + TEXT + NOT_NULL + COMMA_SEP +
                     COLUMN_NAME_TIMESTAMP + TIMESTAMP + NOT_NULL + COMMA_SEP +
                     COLUMN_NAME_SYNC + INT_TYPE + NOT_NULL +
                     ");";
@@ -56,7 +56,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
-    // Creating Tables
+    // Creating Table
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(SQL_CREATE_TABLE);
@@ -71,11 +71,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
-     * All CRUD(Create, Read, Update, Delete) Operations
+     * Inserts the PoisonIvy record in to the database
+     *
+     *@param poisonIvy The PoisonIvy record to be inserted into the local SQLite
+     *                 database table.
      */
-
-    // Adding new poison ivy record
-    void addPI(PI poisonIvy) {
+    void addPI(PoisonIvy poisonIvy) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
@@ -91,27 +92,31 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.close(); // Closing database connection
     }
 
-    // Getting single contact
-    PI getPI(int id) {
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        Cursor cursor = db.query(TABLE_NAME, new String[] { COLUMN_NAME_ID,
-                        COLUMN_NAME_LATITUDE, COLUMN_NAME_LONGITUDE }, COLUMN_NAME_ID + "=?",
-                new String[] { String.valueOf(id) }, null, null, null, null);
-        if (cursor != null)
-            cursor.moveToFirst();
-
+//    PoisonIvy getPI(int id) {
+//        SQLiteDatabase db = this.getReadableDatabase();
+//
+//        Cursor cursor = db.query(TABLE_NAME, new String[] { COLUMN_NAME_ID,
+//                        COLUMN_NAME_LATITUDE, COLUMN_NAME_LONGITUDE }, COLUMN_NAME_ID + "=?",
+//                new String[] { String.valueOf(id) }, null, null, null, null);
+//        if (cursor != null)
+//            cursor.moveToFirst();
+//
 //        PI poisonIvy = new PI(cursor.getString(0), Integer.parseInt(cursor.getString(0)),
 //                cursor.getString(1), cursor.getString(2));
-        PI poisonIvy = new PI(cursor.getString(0),Double.parseDouble(cursor.getString(1)),Double.parseDouble(cursor.getString(2)), cursor.getString(3), Boolean.parseBoolean(cursor.getString(4)));
-        // return contact
-        return poisonIvy;
-    }
+//        PoisonIvy poisonIvy = new PoisonIvy(cursor.getString(0),Double.parseDouble(cursor.getString(1)),Double.parseDouble(cursor.getString(2)), cursor.getString(3), Boolean.parseBoolean(cursor.getString(4)));
+//        // return contact
+//        return poisonIvy;
+//    }
 
-    // Getting All Contacts
-    public List<PI> getAllUnsyncedPIs() {
-        List<PI> piList = new ArrayList<PI>();
-        // Select All Query
+    /**
+     * Gets a list of all the PoisonIvy Objects who have a sync value of
+     * false.
+     *
+     *@return List of all PoisonIvy records that need to be Synced
+     */
+    public List<PoisonIvy> getAllUnsyncedPIs() {
+        List<PoisonIvy> piList = new ArrayList<PoisonIvy>();
+        // Select query where sync column is false
         String selectQuery = "SELECT * FROM " + TABLE_NAME + " where sync=0";
 
         SQLiteDatabase db = this.getWritableDatabase();
@@ -120,7 +125,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         // looping through all rows and adding to list
         if (cursor.moveToFirst()) {
             do {
-                PI poisonIvy = new PI();
+                PoisonIvy poisonIvy = new PoisonIvy();
                 poisonIvy.setLeaf_id(cursor.getString(cursor.getColumnIndex(COLUMN_NAME_lEAF_ID)));
                 poisonIvy.setType(cursor.getString(cursor.getColumnIndex(COLUMN_NAME_LEAF_TYPE)));
                 poisonIvy.setLatitude(Double.parseDouble(cursor.getString(cursor.getColumnIndex(COLUMN_NAME_LATITUDE))));
@@ -132,13 +137,17 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 piList.add(poisonIvy);
             } while (cursor.moveToNext());
         }
-
-        // return contact list
+        // return PoisonIvy list
         return piList;
     }
 
-    // Updating sync status so it is true for @contact
-    public int updateSyncStatus(PI contact) {
+    /**
+     * Updates the current status of the PoisonIvy record's field sync to true in the local
+     * local database.
+     *
+     * @param contact The PoisonIvy record that is being updated
+     */
+    public int updateSyncStatus(PoisonIvy contact) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
@@ -149,11 +158,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 new String[] { String.valueOf(contact.getTimeStamp()) });
     }
 
+    /**
+     * Deletes the most recent record insert into the table.
+     */
     public void deleteMostRecentPI() {
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL("DELETE FROM " + TABLE_NAME + " WHERE id = (SELECT MAX(id) FROM " + TABLE_NAME +");");
-//        db.delete(TABLE_NAME, COLUMN_NAME_ID + " = ?",
-//                new String[]{String.valueOf("SELECT MAX(" + COLUMN_NAME_ID + ") FROM " + TABLE_NAME)});
         db.close();
     }
 
@@ -196,5 +206,4 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         return tableString;
     }
-
 }

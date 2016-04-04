@@ -12,8 +12,8 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignRight="@+id/leafType"
+        android:layout_alignEnd="@+id/leafType" />
 
     <EditText
         android:layout_width="wrap_content"
@@ -22,8 +22,8 @@
         android:layout_below="@+id/leafId"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_toLeftOf="@+id/delete"
+        android:layout_toStartOf="@+id/delete" />
 
     <Button
         android:layout_width="wrap_content"
@@ -31,9 +31,11 @@
         android:layout_weight=".50"
         android:text="Insert"
         android:id="@+id/insert"
-        android:layout_below="@+id/longText"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignBottom="@+id/leafId"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_toRightOf="@+id/leafId"
+        android:layout_toEndOf="@+id/leafId" />
 
     <Button
         android:layout_width="wrap_content"
@@ -52,11 +54,11 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="Lat"
         android:id="@+id/latText"
-        android:layout_below="@+id/leafType"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_below="@+id/leafType"
+        android:layout_alignRight="@+id/longText"
+        android:layout_alignEnd="@+id/longText" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -67,8 +69,8 @@
         android:layout_below="@+id/latText"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_toLeftOf="@+id/backup"
+        android:layout_toStartOf="@+id/backup" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -79,9 +81,9 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         android:layout_above="@+id/show"
-        android:layout_below="@+id/insert"
         android:maxLines = "1000"
-        android:scrollbars = "vertical"/>
+        android:scrollbars = "vertical"
+        android:layout_below="@+id/sync" />
 
     <Button
         android:layout_width="wrap_content"
@@ -90,15 +92,17 @@
         android:text="Sync"
         android:id="@+id/sync"
         android:layout_below="@+id/longText"
-        android:layout_toRightOf="@+id/insert"
-        android:layout_toEndOf="@+id/insert" />
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@+id/delete"
+        android:layout_toLeftOf="@+id/delete" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Delete Last Insert"
         android:id="@+id/delete"
-        android:layout_below="@+id/longText"
+        android:layout_alignBottom="@+id/leafType"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
 
@@ -112,5 +116,16 @@
         android:layout_alignParentEnd="true"
         android:layout_toRightOf="@+id/show"
         android:layout_toEndOf="@+id/show" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Backup to SD"
+        android:id="@+id/backup"
+        android:layout_alignBottom="@+id/sync"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_toRightOf="@+id/sync"
+        android:layout_toEndOf="@+id/sync" />
 
 </RelativeLayout>

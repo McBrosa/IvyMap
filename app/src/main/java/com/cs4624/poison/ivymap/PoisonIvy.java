@@ -1,9 +1,15 @@
+/*
+* The PoisonIvy class stores all the information necessary, including Leaf ID, Leaf Type, Latitude,
+* Longitude, Timestamp, and whether or not the record has been synced to the database.
+*
+* @author Nathan Rosa
+* @date 4/3/16
+* @version 1.0
+*/
+
 package com.cs4624.poison.ivymap;
 
-/**
- * Created by Nathan on 3/21/2016.
- */
-public class PI {
+public class PoisonIvy {
     private String type;
     private String leaf_id;
     private double latitude;
@@ -11,9 +17,9 @@ public class PI {
     private String timeStamp;
     private boolean sync;
 
-    public PI(){}
+    public PoisonIvy(){}
 
-    public PI(String type, double latitude, double longitude, String timeStamp, boolean sync) {
+    public PoisonIvy(String type, double latitude, double longitude, String timeStamp, boolean sync) {
         this.type = type;
         this.latitude = latitude;
         this.longitude = longitude;
@@ -21,7 +27,7 @@ public class PI {
         this.sync = sync;
     }
 
-    public PI(String leaf_id, String type, double latitude, double longitude, String timeStamp, boolean sync) {
+    public PoisonIvy(String leaf_id, String type, double latitude, double longitude, String timeStamp, boolean sync) {
         this.leaf_id = leaf_id;
         this.type = type;
         this.latitude = latitude;
