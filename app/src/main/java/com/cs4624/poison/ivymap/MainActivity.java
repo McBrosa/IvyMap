@@ -85,7 +85,10 @@ public class MainActivity extends Activity {
                     REQUEST_WRITE_STORAGE);
         }
 
+        // Create or get the table
         database = new DatabaseHandler(getApplicationContext());
+
+        // Initialize buttons and views
         leafId = (EditText) findViewById(R.id.leafId);
         leafId.setHint("Leaf ID");
         leafType = (EditText) findViewById(R.id.leafType);
@@ -162,6 +165,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 if (!database.getAllUnsyncedPIs().isEmpty()) {
+                    Toast.makeText(getApplicationContext(), "Updating...", Toast.LENGTH_SHORT).show();
                     for (final PoisonIvy pi : database.getAllUnsyncedPIs()) {
                         StringRequest request = new StringRequest(Request.Method.POST, insertURL, new Response.Listener<String>() {
                             @Override
@@ -190,7 +194,7 @@ public class MainActivity extends Activity {
                         pi.setSync(true);
                         database.updateSyncStatus(pi);
                     }
-                    Toast.makeText(getApplicationContext(), "Database updated", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Complete", Toast.LENGTH_SHORT).show();
                     leafType.setText("");
                     leafId.setText("");
                 }
