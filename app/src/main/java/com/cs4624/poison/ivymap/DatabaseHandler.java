@@ -147,9 +147,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      *
      * @param contact The PoisonIvy record that is being updated
      */
-    public int updateSyncStatus(PoisonIvy contact) {
+    public int updateSyncStatus(PoisonIvy contact, boolean status) {
         SQLiteDatabase db = this.getWritableDatabase();
-
+        contact.setSync(status);
         ContentValues values = new ContentValues();
         values.put(COLUMN_NAME_SYNC, contact.getSync());
 

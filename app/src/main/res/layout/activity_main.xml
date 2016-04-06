@@ -57,8 +57,8 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/leafType"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_toLeftOf="@+id/delete"
+        android:layout_toStartOf="@+id/delete" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -70,8 +70,7 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_toStartOf="@+id/backup"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_toLeftOf="@+id/backup" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -92,11 +91,11 @@
         android:layout_weight=".50"
         android:text="Sync"
         android:id="@+id/sync"
-        android:layout_below="@+id/longText"
+        android:layout_below="@+id/password"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_toStartOf="@+id/delete"
-        android:layout_toLeftOf="@+id/delete" />
+        android:layout_alignRight="@+id/latText"
+        android:layout_alignEnd="@+id/latText" />
 
     <Button
         android:layout_width="wrap_content"
@@ -127,5 +126,27 @@
         android:layout_toRightOf="@+id/sync"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/username"
+        android:layout_below="@+id/longText"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignRight="@+id/delete"
+        android:layout_alignEnd="@+id/delete" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textPassword"
+        android:ems="10"
+        android:id="@+id/password"
+        android:layout_below="@+id/username"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignRight="@+id/backup"
+        android:layout_alignEnd="@+id/backup" />
 
 </RelativeLayout>

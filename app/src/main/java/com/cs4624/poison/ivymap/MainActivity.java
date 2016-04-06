@@ -20,9 +20,14 @@ import android.widget.Toast;
 import android.text.method.ScrollingMovementMethod;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkError;
+import com.android.volley.NoConnectionError;
+import com.android.volley.ParseError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.ServerError;
+import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
@@ -45,10 +50,9 @@ import java.util.Locale;
 import java.util.Map;
 
 public class MainActivity extends Activity {
-    private EditText leafId, leafType;
+    private EditText leafId, leafType, username, password;
     private Button insert, delete, show, sync, localTable, backup;
     private TextView records, latText, longText;
-    private RequestQueue requestQueue;
     private GPSTracker location;
     private DatabaseHandler database;
     private InputMethodManager inputManager;
@@ -56,9 +60,6 @@ public class MainActivity extends Activity {
     private final static int MY_PERMISSIONS_REQUEST_LOCATION = 0;
     public static final int OVERLAY_PERMISSION_REQ_CODE = 1234;
     private static final int REQUEST_WRITE_STORAGE = 112;
-
-    private String insertURL = "http://vtpiat.netau.net/insert.php";
-    private String showURL = "http://vtpiat.netau.net/show.php";
 
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
@@ -93,6 +94,10 @@ public class MainActivity extends Activity {
         leafId.setHint("Leaf ID");
         leafType = (EditText) findViewById(R.id.leafType);
         leafType.setHint("Leaf Type");
+        username = (EditText) findViewById(R.id.username);
+        username.setHint("Username");
+        password = (EditText) findViewById(R.id.password);
+        password.setHint("Password");
         insert = (Button) findViewById(R.id.insert);
         show = (Button) findViewById(R.id.show);
         delete =(Button) findViewById(R.id.delete);
@@ -111,38 +116,39 @@ public class MainActivity extends Activity {
         {
             location.showSettingsAlert();
         }
-        requestQueue = Volley.newRequestQueue(getApplicationContext());
 
         show.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
                 records.setText("");
-                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, showURL, null, new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        try {
-                            JSONArray poison_ivy = response.getJSONArray("poison_ivy");
-                            for (int i = 0; i < poison_ivy.length(); i++) {
-                                JSONObject pi = poison_ivy.getJSONObject(i);
-                                String leaf_id = pi.getString("leaf_id");
-                                String leaf_type = pi.getString("leaf_type");
-                                String latitude = pi.getString("latitude");
-                                String longitude = pi.getString("longitude");
-                                String date_time = pi.getString("date_time");
-
-                                records.append("Leaf id: " + leaf_id +  ", Type: " + leaf_type + "\nLat: " + latitude + ", Long: " + longitude
-                                + "\nTimeStamp: " + date_time + "\n");
-                            }
-                        } catch (JSONException e){
-                            e.printStackTrace();
+                if (isEmpty(username) && isEmpty(password)) {
+                    Toast.makeText(getApplicationContext(), "Please provide a username and password for MySQL database", Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
+                    String showURL = "http://vtpiat.netau.net/show.php";
+                    StringRequest jsonObjectRequest = new StringRequest(Request.Method.POST, showURL, new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                                records.append(prettyJson(response));
                         }
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error){ }
-                });
-                requestQueue.add(jsonObjectRequest);
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                        }
+
+                    }){
+                        @Override
+                        protected Map<String, String> getParams() throws AuthFailureError {
+                            Map<String, String> parameters = new HashMap<String, String>();
+                            parameters.put("username", username.getText().toString());
+                            parameters.put("password", password.getText().toString());
+                            return parameters;
+                        }
+                    };
+                    requestQueue.add(jsonObjectRequest);
+                }
             }
         });
 
@@ -150,13 +156,13 @@ public class MainActivity extends Activity {
         insert.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
+                leafType.setText("");
+                leafId.setText("");
                 final String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-                PoisonIvy poisonIvy = new PoisonIvy(leafId.getText().toString(),leafType.getText().toString(),location.getLatitude(),location.getLongitude(),timeStamp,false);
+                PoisonIvy poisonIvy = new PoisonIvy(leafId.getText().toString(),leafType.getText().toString(),location.getLatitude(), location.getLongitude(),timeStamp,false);
                 database.addPI(poisonIvy);
 
                 Toast.makeText(getApplicationContext(), "Record Inserted", Toast.LENGTH_SHORT).show();
-                leafType.setText("");
-                leafId.setText("");
             }
         });
 
@@ -164,43 +170,48 @@ public class MainActivity extends Activity {
         sync.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
-                if (!database.getAllUnsyncedPIs().isEmpty()) {
-                    Toast.makeText(getApplicationContext(), "Updating...", Toast.LENGTH_SHORT).show();
-                    for (final PoisonIvy pi : database.getAllUnsyncedPIs()) {
-                        StringRequest request = new StringRequest(Request.Method.POST, insertURL, new Response.Listener<String>() {
-                            @Override
-                            public void onResponse(String response) {
-
-                            }
-                        }, new Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                Toast.makeText(getApplicationContext(), "Error uploading... Please try again", Toast.LENGTH_SHORT).show();
-                            }
-                        }) {
-                            @Override
-                            protected Map<String, String> getParams() throws AuthFailureError {
-                                Map<String, String> parameters = new HashMap<String, String>();
-                                parameters.put("leaf_id", pi.getLeaf_id());
-                                parameters.put("leaf_type", pi.getType());
-                                parameters.put("latitude", Double.toString(pi.getLatitude()));
-                                parameters.put("longitude", Double.toString(pi.getLongitude()));
-                                parameters.put("date_time", pi.getTimeStamp());
-                                return parameters;
-                            }
-                        };
-                        requestQueue.add(request);
-                        // Lets the local database know the record has been synced to the server.
-                        pi.setSync(true);
-                        database.updateSyncStatus(pi);
-                    }
-                    Toast.makeText(getApplicationContext(), "Complete", Toast.LENGTH_SHORT).show();
-                    leafType.setText("");
-                    leafId.setText("");
+                if (isEmpty(username) && isEmpty(password)) {
+                    Toast.makeText(getApplicationContext(), "Please provide a username and password for MySQL database", Toast.LENGTH_SHORT).show();
                 }
-                else
-                {
-                    Toast.makeText(getApplicationContext(), "There is No New Records to Sync", Toast.LENGTH_SHORT).show();
+                else {
+                    String insertURL = "http://vtpiat.netau.net/insert.php";
+                    Toast.makeText(getApplicationContext(), "Updating...", Toast.LENGTH_SHORT).show();
+                    RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
+                    if (!database.getAllUnsyncedPIs().isEmpty()) {
+                        for (final PoisonIvy pi : database.getAllUnsyncedPIs()) {
+                            StringRequest request = new StringRequest(Request.Method.POST, insertURL, new Response.Listener<String>() {
+                                @Override
+                                public void onResponse(String response) {
+                                    // Lets the local database know the record has been synced
+                                    database.updateSyncStatus(pi, true);
+                                }
+                            }, new Response.ErrorListener() {
+                                @Override
+                                public void onErrorResponse(VolleyError error) {
+                                    database.updateSyncStatus(pi, false);
+
+                                    Toast.makeText(getApplicationContext(), "Error uploading... Please try again", Toast.LENGTH_SHORT).show();
+                                }
+                            }) {
+                                @Override
+                                protected Map<String, String> getParams() throws AuthFailureError {
+                                    Map<String, String> parameters = new HashMap<String, String>();
+                                    parameters.put("username", username.getText().toString());
+                                    parameters.put("password", password.getText().toString());
+                                    parameters.put("leaf_id", pi.getLeaf_id());
+                                    parameters.put("leaf_type", pi.getType());
+                                    parameters.put("latitude", Double.toString(pi.getLatitude()));
+                                    parameters.put("longitude", Double.toString(pi.getLongitude()));
+                                    parameters.put("date_time", pi.getTimeStamp());
+                                    return parameters;
+                                }
+                            };
+                            requestQueue.add(request);
+                        }
+                        Toast.makeText(getApplicationContext(), "Complete", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getApplicationContext(), "There is No New Records to Sync", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
         });
@@ -268,6 +279,21 @@ public class MainActivity extends Activity {
         } catch (Exception e) {
         }
     }
+
+    private boolean isEmpty(EditText etText) {
+        return etText.getText().toString().trim().length() == 0;
+    }
+
+    private String prettyJson(String uglyStr){
+        int spacesToIndentEachLevel = 2;
+        try {
+            return new JSONObject(uglyStr).toString(spacesToIndentEachLevel);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return "Error";
+    }
+
 
     public static HashSet<String> getExternalMounts() {
         final HashSet<String> out = new HashSet<String>();
