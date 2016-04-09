@@ -3,8 +3,10 @@ package com.cs4624.poison.ivymap;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -50,12 +52,18 @@ import java.util.Locale;
 import java.util.Map;
 
 public class MainActivity extends Activity {
-    private EditText leafId, leafType, username, password;
-    private Button insert, delete, show, sync, localTable, backup;
+    private EditText leafId, leafType;
+    private Button insert, delete, show, sync, localTable, backup, settings;
     private TextView records, latText, longText;
     private GPSTracker location;
     private DatabaseHandler database;
     private InputMethodManager inputManager;
+
+    public static final String MyPREFERENCES = "MyPrefs";
+    public static final String Username = "usernameKey";
+    public static final String Password = "passwordKey";
+    public static final String Team = "teamKey";
+    SharedPreferences sharedpreferences;
 
     private final static int MY_PERMISSIONS_REQUEST_LOCATION = 0;
     public static final int OVERLAY_PERMISSION_REQ_CODE = 1234;
@@ -89,15 +97,14 @@ public class MainActivity extends Activity {
         // Create or get the table
         database = new DatabaseHandler(getApplicationContext());
 
+        sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+
         // Initialize buttons and views
         leafId = (EditText) findViewById(R.id.leafId);
         leafId.setHint("Leaf ID");
         leafType = (EditText) findViewById(R.id.leafType);
         leafType.setHint("Leaf Type");
-        username = (EditText) findViewById(R.id.username);
-        username.setHint("Username");
-        password = (EditText) findViewById(R.id.password);
-        password.setHint("Password");
+        settings = (Button) findViewById(R.id.settings);
         insert = (Button) findViewById(R.id.insert);
         show = (Button) findViewById(R.id.show);
         delete =(Button) findViewById(R.id.delete);
@@ -117,17 +124,26 @@ public class MainActivity extends Activity {
             location.showSettingsAlert();
         }
 
+        settings.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View arg0) {
+                // Start SettingsActivity.class
+                Intent myIntent = new Intent(MainActivity.this,
+                        SettingsActivity.class);
+                startActivity(myIntent);
+            }
+        });
+
         show.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
                 records.setText("");
-                if (isEmpty(username) && isEmpty(password)) {
+                if (getUsername().isEmpty() && getPassword().isEmpty()) {
                     Toast.makeText(getApplicationContext(), "Please provide a username and password for MySQL database", Toast.LENGTH_SHORT).show();
                 }
                 else {
                     RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
-                    String showURL = "http://vtpiat.netau.net/show.php";
+                    String showURL = "https://oak.ppws.vt.edu/~cs4624/post/show.php";
                     StringRequest jsonObjectRequest = new StringRequest(Request.Method.POST, showURL, new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {
@@ -142,8 +158,8 @@ public class MainActivity extends Activity {
                         @Override
                         protected Map<String, String> getParams() throws AuthFailureError {
                             Map<String, String> parameters = new HashMap<String, String>();
-                            parameters.put("username", username.getText().toString());
-                            parameters.put("password", password.getText().toString());
+                            parameters.put("username", getUsername());
+                            parameters.put("password", getPassword());
                             return parameters;
                         }
                     };
@@ -156,12 +172,12 @@ public class MainActivity extends Activity {
         insert.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
-                leafType.setText("");
-                leafId.setText("");
                 final String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-                PoisonIvy poisonIvy = new PoisonIvy(leafId.getText().toString(),leafType.getText().toString(),location.getLatitude(), location.getLongitude(),timeStamp,false);
+                PoisonIvy poisonIvy = new PoisonIvy(getTeam(), leafId.getText().toString(),leafType.getText().toString(),location.getLatitude(), location.getLongitude(),timeStamp,false);
                 database.addPI(poisonIvy);
 
+                leafType.setText("");
+                leafId.setText("");
                 Toast.makeText(getApplicationContext(), "Record Inserted", Toast.LENGTH_SHORT).show();
             }
         });
@@ -170,11 +186,11 @@ public class MainActivity extends Activity {
         sync.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
-                if (isEmpty(username) && isEmpty(password)) {
+                if (getUsername().isEmpty() && getPassword().isEmpty()) {
                     Toast.makeText(getApplicationContext(), "Please provide a username and password for MySQL database", Toast.LENGTH_SHORT).show();
                 }
                 else {
-                    String insertURL = "http://vtpiat.netau.net/insert.php";
+                    String insertURL = "https://oak.ppws.vt.edu/~cs4624/post/insert.php";
                     Toast.makeText(getApplicationContext(), "Updating...", Toast.LENGTH_SHORT).show();
                     RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
                     if (!database.getAllUnsyncedPIs().isEmpty()) {
@@ -189,17 +205,17 @@ public class MainActivity extends Activity {
                                 @Override
                                 public void onErrorResponse(VolleyError error) {
                                     database.updateSyncStatus(pi, false);
-
                                     Toast.makeText(getApplicationContext(), "Error uploading... Please try again", Toast.LENGTH_SHORT).show();
                                 }
                             }) {
                                 @Override
                                 protected Map<String, String> getParams() throws AuthFailureError {
                                     Map<String, String> parameters = new HashMap<String, String>();
-                                    parameters.put("username", username.getText().toString());
-                                    parameters.put("password", password.getText().toString());
-                                    parameters.put("leaf_id", pi.getLeaf_id());
-                                    parameters.put("leaf_type", pi.getType());
+                                    parameters.put("username", getUsername());
+                                    parameters.put("password", getPassword());
+                                    parameters.put("team", pi.getTeam());
+                                    parameters.put("plant_id", pi.getPlantId());
+                                    parameters.put("plant_type", pi.getType());
                                     parameters.put("latitude", Double.toString(pi.getLatitude()));
                                     parameters.put("longitude", Double.toString(pi.getLongitude()));
                                     parameters.put("date_time", pi.getTimeStamp());
@@ -283,6 +299,22 @@ public class MainActivity extends Activity {
     private boolean isEmpty(EditText etText) {
         return etText.getText().toString().trim().length() == 0;
     }
+
+    private String getUsername()
+    {
+        return sharedpreferences.getString(Username, "");
+    }
+
+    private String getPassword()
+    {
+        return sharedpreferences.getString(Password, "");
+    }
+
+    private String getTeam()
+    {
+        return sharedpreferences.getString(Team, "");
+    }
+
 
     private String prettyJson(String uglyStr){
         int spacesToIndentEachLevel = 2;

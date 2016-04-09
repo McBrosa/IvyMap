@@ -23,8 +23,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     // Contacts Table Columns names
     private static final String COLUMN_NAME_ID = "id";
-    private static final String COLUMN_NAME_lEAF_ID = "leaf_id";
-    private static final String COLUMN_NAME_LEAF_TYPE = "leaf_type";
+    private static final String COLUMN_NAME_TEAM = "team";
+    private static final String COLUMN_NAME_PLANT_ID = "plant_id";
+    private static final String COLUMN_NAME_PLANT_TYPE = "plant_type";
     private static final String COLUMN_NAME_LATITUDE = "latitude";
     private static final String COLUMN_NAME_LONGITUDE = "longitude";
     private static final String COLUMN_NAME_TIMESTAMP = "date_time";
@@ -41,8 +42,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     String SQL_CREATE_TABLE =
             "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" +
                     COLUMN_NAME_ID + " INTEGER PRIMARY KEY AUTOINCREMENT" + COMMA_SEP +
-                    COLUMN_NAME_lEAF_ID + " TEXT" + NULL + COMMA_SEP +
-                    COLUMN_NAME_LEAF_TYPE + CHAR_1 + NULL + COMMA_SEP +
+                    COLUMN_NAME_PLANT_ID + " TEXT" + NULL + COMMA_SEP +
+                    COLUMN_NAME_TEAM + " TEXT" + NOT_NULL + COMMA_SEP +
+                    COLUMN_NAME_PLANT_TYPE + CHAR_1 + NOT_NULL + COMMA_SEP +
                     COLUMN_NAME_LATITUDE + TEXT + NOT_NULL + COMMA_SEP +
                     COLUMN_NAME_LONGITUDE + TEXT + NOT_NULL + COMMA_SEP +
                     COLUMN_NAME_TIMESTAMP + TIMESTAMP + NOT_NULL + COMMA_SEP +
@@ -80,8 +82,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(COLUMN_NAME_lEAF_ID, poisonIvy.getLeaf_id());
-        values.put(COLUMN_NAME_LEAF_TYPE, poisonIvy.getType());
+        values.put(COLUMN_NAME_PLANT_ID, poisonIvy.getPlantId());
+        values.put(COLUMN_NAME_TEAM, poisonIvy.getTeam());
+        values.put(COLUMN_NAME_PLANT_TYPE, poisonIvy.getType());
         values.put(COLUMN_NAME_LATITUDE, poisonIvy.getLatitude());
         values.put(COLUMN_NAME_LONGITUDE, poisonIvy.getLongitude());
         values.put(COLUMN_NAME_TIMESTAMP, poisonIvy.getTimeStamp());
@@ -126,8 +129,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             do {
                 PoisonIvy poisonIvy = new PoisonIvy();
-                poisonIvy.setLeaf_id(cursor.getString(cursor.getColumnIndex(COLUMN_NAME_lEAF_ID)));
-                poisonIvy.setType(cursor.getString(cursor.getColumnIndex(COLUMN_NAME_LEAF_TYPE)));
+                poisonIvy.setPlantId(cursor.getString(cursor.getColumnIndex(COLUMN_NAME_PLANT_ID)));
+                poisonIvy.setTeam(cursor.getString(cursor.getColumnIndex(COLUMN_NAME_TEAM)));
+                poisonIvy.setType(cursor.getString(cursor.getColumnIndex(COLUMN_NAME_PLANT_TYPE)));
                 poisonIvy.setLatitude(Double.parseDouble(cursor.getString(cursor.getColumnIndex(COLUMN_NAME_LATITUDE))));
                 poisonIvy.setLongitude(Double.parseDouble(cursor.getString(cursor.getColumnIndex(COLUMN_NAME_LONGITUDE))));
                 poisonIvy.setTimeStamp(cursor.getString(cursor.getColumnIndex(COLUMN_NAME_TIMESTAMP)));

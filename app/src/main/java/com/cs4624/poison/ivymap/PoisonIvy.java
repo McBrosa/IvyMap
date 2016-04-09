@@ -11,7 +11,8 @@ package com.cs4624.poison.ivymap;
 
 public class PoisonIvy {
     private String type;
-    private String leaf_id;
+    private String plantId;
+    private String team;
     private double latitude;
     private double longitude;
     private String timeStamp;
@@ -19,7 +20,8 @@ public class PoisonIvy {
 
     public PoisonIvy(){}
 
-    public PoisonIvy(String type, double latitude, double longitude, String timeStamp, boolean sync) {
+    public PoisonIvy(String team, String type, double latitude, double longitude, String timeStamp, boolean sync) {
+        this.team = team;
         this.type = type;
         this.latitude = latitude;
         this.longitude = longitude;
@@ -27,8 +29,9 @@ public class PoisonIvy {
         this.sync = sync;
     }
 
-    public PoisonIvy(String leaf_id, String type, double latitude, double longitude, String timeStamp, boolean sync) {
-        this.leaf_id = leaf_id;
+    public PoisonIvy(String team, String plantId, String type, double latitude, double longitude, String timeStamp, boolean sync) {
+        this.team = team;
+        this.plantId = plantId;
         this.type = type;
         this.latitude = latitude;
         this.longitude = longitude;
@@ -60,12 +63,20 @@ public class PoisonIvy {
         this.longitude = longitude;
     }
 
-    public String getLeaf_id() {
-        return leaf_id;
+    public String getPlantId() {
+        return plantId;
     }
 
-    public void setLeaf_id(String leaf_id) {
-        this.leaf_id = leaf_id;
+    public void setPlantId(String plantId) {
+        this.plantId = plantId;
+    }
+
+    public String getTeam() {
+        return team;
+    }
+
+    public void setTeam(String team) {
+        this.team = team;
     }
 
     public String getTimeStamp() {
