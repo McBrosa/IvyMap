@@ -5,9 +5,13 @@ import java.util.List;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.view.Surface;
+import android.view.View;
+import android.view.WindowManager;
 
 public class DatabaseHandler extends SQLiteOpenHelper {
 
@@ -145,6 +149,22 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return piList;
     }
 
+
+    /**
+     * Gets a list of all the PoisonIvy Objects who have a sync value of
+     * false.
+     *
+     *@return List of all PoisonIvy records that need to be Synced
+     */
+    public int getAllUnsyncedCount() {
+        // Select query where sync column is false
+        String selectQuery = "SELECT * FROM " + TABLE_NAME + " where sync=0";
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+        return cursor.getCount();
+    }
+
     /**
      * Updates the current status of the PoisonIvy record's field sync to true in the local
      * local database.
@@ -183,11 +203,19 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return count;
     }
 
-    public Cursor readEntry() {
+    public Cursor readEntry(Context context) {
         SQLiteDatabase db = this.getWritableDatabase();
-        String[] allColumns = new String[] { COLUMN_NAME_ID, COLUMN_NAME_TEAM, COLUMN_NAME_PLANT_ID,
-                COLUMN_NAME_PLANT_TYPE, COLUMN_NAME_LATITUDE, COLUMN_NAME_LONGITUDE, COLUMN_NAME_TIMESTAMP };
-
+        String[] allColumns;
+        // Check Orientation of the Screen
+        if(context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
+        {
+            allColumns = new String[] { COLUMN_NAME_ID, COLUMN_NAME_PLANT_ID,
+                    COLUMN_NAME_PLANT_TYPE, COLUMN_NAME_TIMESTAMP};
+        }
+        else {
+            allColumns = new String[]{COLUMN_NAME_ID, COLUMN_NAME_TEAM, COLUMN_NAME_PLANT_ID,
+                    COLUMN_NAME_PLANT_TYPE, COLUMN_NAME_LATITUDE, COLUMN_NAME_LONGITUDE, COLUMN_NAME_TIMESTAMP, COLUMN_NAME_SYNC};
+        }
         Cursor c = db.query(TABLE_NAME, allColumns, null, null, null,
                 null, null);
         if (c != null) {

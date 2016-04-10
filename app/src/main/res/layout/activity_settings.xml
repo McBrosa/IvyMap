@@ -11,7 +11,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Update"
+        android:text="Update Settings"
         android:id="@+id/update"
         android:layout_gravity="center_horizontal"
         android:layout_alignParentBottom="true"
@@ -48,7 +48,7 @@
         android:layout_alignParentBottom="true"
         android:orientation="horizontal"
         android:background="@drawable/navbar_background"
-        >
+        android:id="@+id/radioGroup3">
         <RadioButton
             android:id="@+id/btnHome"
             style="@style/navbar_button"

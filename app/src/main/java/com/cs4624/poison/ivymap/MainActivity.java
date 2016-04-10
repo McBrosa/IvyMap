@@ -11,12 +11,15 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteException;
 import android.graphics.Color;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
+import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -65,7 +68,7 @@ import java.util.Map;
 public class MainActivity extends Activity {
     private EditText leafId, leafType;
     private Button insert, delete, show, sync, localTable, backup, settings;
-    private Button absent_button, present_button, sync_button;
+    private Button absent_button, present_button, sync_button, currentL_button;
     public GPSTracker location;
     public DatabaseHandler database;
     private InputMethodManager inputManager;
@@ -76,7 +79,13 @@ public class MainActivity extends Activity {
     public static final String Team = "teamKey";
     SharedPreferences sharedpreferences;
 
-    private static final String insertUrl = "teamKey";
+    private String state = "IDLE";
+    private int counter_key = 0;
+    private static final int VINE = 1;
+    private static final int SHRUB = 2;
+    private static final int CREPPING = 3;
+    private int type_counter = 0;
+
     private final static int MY_PERMISSIONS_REQUEST_LOCATION = 0;
     private static final int OVERLAY_PERMISSION_REQ_CODE = 1234;
     private static final int REQUEST_WRITE_STORAGE = 112;
@@ -116,6 +125,8 @@ public class MainActivity extends Activity {
         present_button = (Button) findViewById(R.id.present_button);
         absent_button = (Button) findViewById(R.id.absent_button);
         sync_button = (Button) findViewById(R.id.sync_button);
+        sync_button.setText("Sync " + database.getAllUnsyncedCount() + " Records");
+        currentL_button = (Button) findViewById(R.id.currentL_button);
         // Navbar
         RadioButton radioButton;
         radioButton = (RadioButton) findViewById(R.id.btnHome);
@@ -124,20 +135,6 @@ public class MainActivity extends Activity {
         radioButton.setOnCheckedChangeListener(btnNavBarOnCheckedChangeListener);
         radioButton = (RadioButton) findViewById(R.id.btnSettings);
         radioButton.setOnCheckedChangeListener(btnNavBarOnCheckedChangeListener);
-//        settings = (Button) findViewById(R.id.settings);
-//        absent_button = (Button) findViewById(R.id.absent_button);
-//        present_button = (Button) findViewById(R.id.present_button);
-//        sync_button= (Button) findViewById(R.id.sync_button);
-//        insert = (Button) findViewById(R.id.insert);
-//        show = (Button) findViewById(R.id.show);
-//        delete =(Button) findViewById(R.id.delete);
-//        localTable =(Button) findViewById(R.id.localTable);
-//        sync =(Button) findViewById(R.id.sync);
-//        backup =(Button) findViewById(R.id.backup);
-//        records = (TextView) findViewById(R.id.records);
-//        records.setMovementMethod(new ScrollingMovementMethod());
-//        latText = (TextView) findViewById(R.id.latText);
-//        longText = (TextView) findViewById(R.id.longText);
 
         // Initialize the GPS
         inputManager = (InputMethodManager) getSystemService(getApplicationContext().INPUT_METHOD_SERVICE);
@@ -147,18 +144,15 @@ public class MainActivity extends Activity {
             location.showSettingsAlert();
         }
 
-//        settings.setOnClickListener(new View.OnClickListener() {
-//            public void onClick(View arg0) {
-//                // Start SettingsActivity.class
-//                Intent myIntent = new Intent(MainActivity.this,
-//                        SettingsActivity.class);
-//                startActivity(myIntent);
-//            }
-//        });
-
         present_button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View arg0) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(arg0.getContext());
+
+                // Plant Id input
+                final EditText input = new EditText(arg0.getContext());
+                input.setHint("Plant ID (Optional)");
+                input.setGravity(Gravity.CENTER);
+                builder.setView(input);
                 builder.setTitle("Pick Type")
                         .setItems(R.array.poison_ivy_array, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
@@ -166,6 +160,7 @@ public class MainActivity extends Activity {
                                 // of the selected item
                                 String type = "";
                                 String notifyType = "";
+                                String plantId = input.getText().toString().trim();
                                 switch (which) {
                                     case 0:
                                         type = "V";
@@ -181,8 +176,9 @@ public class MainActivity extends Activity {
                                         break;
                                 }
                                 final String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-                                PoisonIvy poisonIvy = new PoisonIvy(getTeam(), null, type, location.getLatitude(), location.getLongitude(), timeStamp, false);
+                                PoisonIvy poisonIvy = new PoisonIvy(getTeam(), plantId, type, location.getLatitude(), location.getLongitude(), timeStamp, false);
                                 database.addPI(poisonIvy);
+                                sync_button.setText("Sync " + database.getAllUnsyncedCount() + " Records");
                                 Toast.makeText(getApplicationContext(), notifyType + " Recorded", Toast.LENGTH_SHORT).show();
                             }
                         });
@@ -195,6 +191,7 @@ public class MainActivity extends Activity {
                 final String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
                 PoisonIvy poisonIvy = new PoisonIvy(getTeam(), null, "A", location.getLatitude(), location.getLongitude(), timeStamp, false);
                 database.addPI(poisonIvy);
+                sync_button.setText("Sync " + database.getAllUnsyncedCount() + " Records");
                 Toast.makeText(getApplicationContext(), "Absence Recorded", Toast.LENGTH_SHORT).show();
             }
         });
@@ -234,30 +231,6 @@ public class MainActivity extends Activity {
 //            }
 //        });
 //
-//        // Inserts records into the local SQLite database
-//        insert.setOnClickListener(new View.OnClickListener(){
-//            @Override
-//            public void onClick(View view){
-//                final String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-//                PoisonIvy poisonIvy = new PoisonIvy(getTeam(), leafId.getText().toString(),leafType.getText().toString(),location.getLatitude(), location.getLongitude(),timeStamp,false);
-//                database.addPI(poisonIvy);
-//
-//                Toast.makeText(getApplicationContext(), "Record Inserted", Toast.LENGTH_SHORT).show();
-//            }
-//        });
-//
-//        // Inserts records into the local SQLite database
-//        absent_button.setOnClickListener(new View.OnClickListener(){
-//            @Override
-//            public void onClick(View view){
-//                final String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-//                PoisonIvy poisonIvy = new PoisonIvy(getTeam(), null,"A",location.getLatitude(), location.getLongitude(),timeStamp,false);
-//                database.addPI(poisonIvy);
-//
-//                Toast.makeText(getApplicationContext(), "Absence Recorded", Toast.LENGTH_SHORT).show();
-//            }
-//        });
-//
         // Gets all the unsynced poison ivy records and inserts them into the database.
         sync_button.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -277,11 +250,14 @@ public class MainActivity extends Activity {
                                 public void onResponse(String response) {
                                     // Lets the local database know the record has been synced
                                     database.updateSyncStatus(pi, true);
+                                    sync_button.setText("Sync " + database.getAllUnsyncedCount() + " Records");
+
                                 }
                             }, new Response.ErrorListener() {
                                 @Override
                                 public void onErrorResponse(VolleyError error) {
                                     database.updateSyncStatus(pi, false);
+                                    sync_button.setText("Sync " + database.getAllUnsyncedCount() + " Records");
                                     Toast.makeText(getApplicationContext(), error.getLocalizedMessage() + " Error uploading... Please try again", Toast.LENGTH_SHORT).show();
                                 }
                             }) {
@@ -305,7 +281,18 @@ public class MainActivity extends Activity {
                     } else {
                         Toast.makeText(getApplicationContext(), "There is No New Records to Sync", Toast.LENGTH_SHORT).show();
                     }
+                    //sync_button.setText("Sync " + database.getAllUnsyncedCount() + " Records");
                 }
+            }
+        });
+
+        currentL_button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View arg0) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(arg0.getContext())
+                        .setTitle("Coordinates:")
+                        .setMessage("Lat: " + Double.toString(location.getLatitude()) + "\nLong: " +
+                                Double.toString(location.getLongitude()));
+                builder.show();
             }
         });
 
@@ -373,6 +360,139 @@ public class MainActivity extends Activity {
             }
         }
     };
+
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        //String counter_str = Integer.toString(type_counter);
+        Log.d("onKeyDown", "!on key  ");
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            switch (keyCode) {
+                case KeyEvent.KEYCODE_VOLUME_UP:                                                            //*****Up button pressed
+                    if (state == "IDLE") {
+                        Toast.makeText(this, "Press small round button to start" + counter_key, Toast.LENGTH_SHORT).show();
+                    } else if (state == "CHOOSE") {
+                        type_counter = type_counter % 3;
+                        type_counter++;
+                        if (type_counter == VINE) {          //vine
+                            final MediaPlayer mp_vine = MediaPlayer.create(this, R.raw.vine);
+                            mp_vine.start();
+                            Toast.makeText(this, "Vine", Toast.LENGTH_SHORT).show();
+                            //mp_vine.stop();
+                        } else if (type_counter == SHRUB) {
+                            final MediaPlayer mp_shrub = MediaPlayer.create(this, R.raw.shrub);
+                            mp_shrub.start();
+                            Toast.makeText(this, "Shrub", Toast.LENGTH_SHORT).show();
+                            //mp_shrub.stop();
+                        } else if (type_counter == CREPPING) {
+                            final MediaPlayer mp_creeping = MediaPlayer.create(this, R.raw.creeping);
+                            mp_creeping.start();
+                            Toast.makeText(this, "Creeping", Toast.LENGTH_SHORT).show();
+                            //mp_creeping.stop();
+                        }
+                    } else if (state == "PSorAB") {
+                        final MediaPlayer mp_choose = MediaPlayer.create(this, R.raw.choose_plant);
+                        Toast.makeText(this, "Present", Toast.LENGTH_SHORT).show();
+                        mp_choose.start();
+                        state = "CHOOSE";
+                        //mp_choose.stop();
+                    } else if (state == "VINE_COMFIRMED") {                                               // vine present
+                        final MediaPlayer mp_present = MediaPlayer.create(this, R.raw.present);
+                        mp_present.start();
+                        // Insert Vine Record
+                        final String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+                        PoisonIvy poisonIvy = new PoisonIvy(getTeam(), null, "V", location.getLatitude(), location.getLongitude(), timeStamp, false);
+                        database.addPI(poisonIvy);
+                        Toast.makeText(this, "Vine/Linnea present comfirmed", Toast.LENGTH_SHORT).show();
+                        state = "IDLE";
+                        type_counter = 0;
+                        //mp_present.stop();
+                    } else if (state == "SHRUB_COMFIRMED") {
+                        final MediaPlayer mp_present = MediaPlayer.create(this, R.raw.present);
+                        mp_present.start();
+                        // Insert Shrub Record
+                        final String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+                        PoisonIvy poisonIvy = new PoisonIvy(getTeam(), null, "S", location.getLatitude(), location.getLongitude(), timeStamp, false);
+                        database.addPI(poisonIvy);
+                        Toast.makeText(this, "Shrub present comfirmed", Toast.LENGTH_SHORT).show();
+                        state = "IDLE";
+                        type_counter = 0;
+                        //mp_present.stop();
+                    } else if (state == "CREEPING_COMFIRMED") {                                               // vine present
+                        final MediaPlayer mp_present = MediaPlayer.create(this, R.raw.present);
+                        mp_present.start();
+                        // Insert Creeping Record
+                        Toast.makeText(this, "Creeping present comfirmed", Toast.LENGTH_SHORT).show();
+                        final String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+                        PoisonIvy poisonIvy = new PoisonIvy(getTeam(), null, "C", location.getLatitude(), location.getLongitude(), timeStamp, false);
+                        database.addPI(poisonIvy);
+                        Toast.makeText(this, "Creeping present comfirmed", Toast.LENGTH_SHORT).show();
+                        state = "IDLE";
+                        type_counter = 0;
+                        //mp_present.stop();
+                    }
+                    counter_key++;
+                    return true;
+                case KeyEvent.KEYCODE_VOLUME_DOWN:                                                      //*****Down button pressed
+                    if (state == "IDLE") {
+                        Toast.makeText(this, "Press small round button to start" + counter_key, Toast.LENGTH_SHORT).show();
+                    } else if (state == "ABSENT") {                                                  // vine absent
+                        final MediaPlayer mp_absent = MediaPlayer.create(this, R.raw.absent);
+                        mp_absent.start();
+                        // Insert Absence Record
+                        final String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+                        PoisonIvy poisonIvy = new PoisonIvy(getTeam(), null, "A", location.getLatitude(), location.getLongitude(), timeStamp, false);
+                        database.addPI(poisonIvy);
+                        Toast.makeText(this, "Absence comfirmed", Toast.LENGTH_SHORT).show();
+                        state = "IDLE";
+                        type_counter = 0;
+                        //mp_absent.stop();
+                    } else if (state == "PSorAB") {                                                        //absent
+                        final MediaPlayer mp_absent = MediaPlayer.create(this, R.raw.absent);
+                        Toast.makeText(this, "Absent", Toast.LENGTH_SHORT).show();
+                        mp_absent.start();
+                        state = "IDLE";
+                        //mp_absent.stop();
+                    }
+                    return true;
+                case KeyEvent.KEYCODE_HEADSETHOOK:
+                    //            case KeyEvent.KEYCODE_MEDIA_PLAY:
+                    //            case KeyEvent.KEYCODE_MEDIA_PAUSE:
+                    if (state == "IDLE") {
+                        final MediaPlayer mp_prorab = MediaPlayer.create(this, R.raw.presentabsent);
+                        Toast.makeText(this, "Present or Absent ? + for present, - for absent", Toast.LENGTH_SHORT).show();
+                        mp_prorab.start();
+                        state = "PSorAB";
+                        //mp_prorab.stop();
+                    } else if (type_counter == VINE && state == "CHOOSE") {
+                        final MediaPlayer mp_present = MediaPlayer.create(this, R.raw.present);
+                        mp_present.start();
+                        Toast.makeText(this, "Vine present comfirmed", Toast.LENGTH_SHORT).show();
+                        //setCurrentMaker_in(counter_key);        //maker down on the map
+                        state = "IDLE";
+                        type_counter = 0;
+                        //mp_present.stop();
+                    } else if (type_counter == SHRUB && state == "CHOOSE") {
+                        final MediaPlayer mp_present = MediaPlayer.create(this, R.raw.present);
+                        mp_present.start();
+                        Toast.makeText(this, "Shrub present comfirmed", Toast.LENGTH_SHORT).show();
+                        state = "IDLE";
+                        type_counter = 0;
+                        //mp_present.stop();
+                    } else if (type_counter == CREPPING && state == "CHOOSE") {
+                        final MediaPlayer mp_present = MediaPlayer.create(this, R.raw.present);
+                        mp_present.start();
+                        Toast.makeText(this, "Creeping present comfirmed", Toast.LENGTH_SHORT).show();
+                        state = "IDLE";
+                        type_counter = 0;
+                        //mp_present.stop();
+                    }
+                    return true;
+            }
+            return false;
+        }
+        return onKeyDown(keyCode, event);
+    }
 
     private void backUpDatabaseToSDCard() {
         try {

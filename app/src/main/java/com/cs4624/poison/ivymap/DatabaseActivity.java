@@ -60,7 +60,6 @@ public class DatabaseActivity extends Activity {
 
         database = new DatabaseHandler(getApplicationContext());
         BuildTable();
-
         button_delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -119,14 +118,29 @@ public class DatabaseActivity extends Activity {
     };
 
     private void BuildTable() {
-        Cursor c = database.readEntry();
+        Cursor c = database.readEntry(getApplicationContext());
 
         int rows = c.getCount();
         int cols = c.getColumnCount();
 
+        // Headers for table
         TableRow header = new TableRow(this);
         header.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,
                 LayoutParams.WRAP_CONTENT));
+        int num = c.getColumnCount();
+        for (int i = 0; i < num; ++i) {
+            TextView tv = new TextView(this);
+            tv.setBackgroundResource(R.drawable.header_color);
+            tv.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT,
+                    LayoutParams.WRAP_CONTENT));
+            tv.setGravity(Gravity.CENTER);
+            tv.setTextSize(16);
+
+            tv.setText(c.getColumnName(i));
+            header.addView(tv);
+        }
+        table_layout.addView(header);
+
         // outer for loop
         for (int i = rows - 1; i >= 0; i--) {
             TableRow row = new TableRow(this);
@@ -156,7 +170,6 @@ public class DatabaseActivity extends Activity {
     }
 
     private class MyAsync extends AsyncTask<Void, Void, Void> {
-
         @Override
         protected void onPreExecute() {
 
@@ -186,20 +199,5 @@ public class DatabaseActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-    }
-
-    private String getUsername()
-    {
-        return sharedpreferences.getString(Username, "");
-    }
-
-    private String getPassword()
-    {
-        return sharedpreferences.getString(Password, "");
-    }
-
-    private String getTeam()
-    {
-        return sharedpreferences.getString(Team, "");
     }
 }

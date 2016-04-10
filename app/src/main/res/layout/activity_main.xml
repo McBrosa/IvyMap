@@ -72,10 +72,10 @@
                 android:layout_margin="10dp"
                 android:textSize="@dimen/text_size"
                 android:alpha=".9"
-                android:text="hello"
+                android:text="Current Location"
                 android:textColor="#fff"
-                android:id="@+id/button4"
-                android:layout_weight="5" />
+                android:layout_weight="5"
+                android:id="@+id/currentL_button" />
         </TableRow>
     </LinearLayout>
     <RadioGroup

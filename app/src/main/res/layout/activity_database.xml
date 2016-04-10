@@ -17,8 +17,9 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/button_delete"
-        android:layout_above="@+id/radioGroup2">
+        android:layout_above="@+id/radioGroup3"
+        android:id="@+id/scrollView"
+        android:layout_below="@+id/button_delete">
 
         <TableLayout
             android:id="@+id/tableLayout1"
@@ -36,7 +37,7 @@
         android:layout_alignParentBottom="true"
         android:orientation="horizontal"
         android:background="@drawable/navbar_background"
-        android:id="@+id/radioGroup2">
+        android:id="@+id/radioGroup3">
         <RadioButton
             android:id="@+id/btnHome"
             style="@style/navbar_button"
@@ -58,16 +59,4 @@
             android:layout_marginLeft="5dp"
             android:checked="false" />
     </RadioGroup>
-
-    <!--<TextView-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:id="@+id/records"-->
-        <!--android:scrollbars = "vertical"-->
-        <!--android:layout_below="@+id/button_delete"-->
-        <!--android:layout_alignParentLeft="true"-->
-        <!--android:layout_alignParentStart="true"-->
-        <!--android:layout_above="@+id/radioGroup2"-->
-        <!--android:layout_alignParentRight="true"-->
-        <!--android:layout_alignParentEnd="true" />-->
 </RelativeLayout>
