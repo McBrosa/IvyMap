@@ -167,15 +167,15 @@ public class MainActivity extends Activity {
                                 String type = "";
                                 String notifyType = "";
                                 switch (which) {
-                                    case 1:
+                                    case 0:
                                         type = "V";
                                         notifyType = "Vine/Linnea";
                                         break;
-                                    case 2:
+                                    case 1:
                                         type = "C";
                                         notifyType = "Creeping";
                                         break;
-                                    case 3:
+                                    case 2:
                                         type = "S";
                                         notifyType = "Shrub";
                                         break;

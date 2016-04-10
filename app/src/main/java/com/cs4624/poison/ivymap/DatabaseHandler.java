@@ -167,7 +167,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      */
     public void deleteMostRecentPI() {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL("DELETE FROM " + TABLE_NAME + " WHERE id = (SELECT MAX(id) FROM " + TABLE_NAME +");");
+        db.execSQL("DELETE FROM " + TABLE_NAME + " WHERE id = (SELECT MAX(id) FROM " + TABLE_NAME + ");");
         db.close();
     }
 
@@ -177,10 +177,23 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         String countQuery = "SELECT  * FROM " + TABLE_NAME;
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(countQuery, null);
+        int count = cursor.getCount();
         cursor.close();
-
         // return count
-        return cursor.getCount();
+        return count;
+    }
+
+    public Cursor readEntry() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        String[] allColumns = new String[] { COLUMN_NAME_ID, COLUMN_NAME_TEAM, COLUMN_NAME_PLANT_ID,
+                COLUMN_NAME_PLANT_TYPE, COLUMN_NAME_LATITUDE, COLUMN_NAME_LONGITUDE, COLUMN_NAME_TIMESTAMP };
+
+        Cursor c = db.query(TABLE_NAME, allColumns, null, null, null,
+                null, null);
+        if (c != null) {
+            c.moveToLast();
+        }
+        return c;
     }
 
 
