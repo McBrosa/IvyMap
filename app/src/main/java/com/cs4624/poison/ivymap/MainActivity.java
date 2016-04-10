@@ -7,12 +7,16 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteException;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
+import android.view.Gravity;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -22,6 +26,8 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.Spinner;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.text.method.ScrollingMovementMethod;
@@ -77,6 +83,7 @@ public class MainActivity extends Activity {
 
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
 
         // Check to see if there is permission for location services
@@ -111,13 +118,11 @@ public class MainActivity extends Activity {
         sync_button = (Button) findViewById(R.id.sync_button);
         // Navbar
         RadioButton radioButton;
-        radioButton = (RadioButton) findViewById(R.id.btnAll);
+        radioButton = (RadioButton) findViewById(R.id.btnHome);
         radioButton.setOnCheckedChangeListener(btnNavBarOnCheckedChangeListener);
-        radioButton = (RadioButton) findViewById(R.id.btnPicture);
+        radioButton = (RadioButton) findViewById(R.id.btnDatabase);
         radioButton.setOnCheckedChangeListener(btnNavBarOnCheckedChangeListener);
-        radioButton = (RadioButton) findViewById(R.id.btnVideo);
-        radioButton.setOnCheckedChangeListener(btnNavBarOnCheckedChangeListener);
-        radioButton = (RadioButton) findViewById(R.id.btnFile);
+        radioButton = (RadioButton) findViewById(R.id.btnSettings);
         radioButton.setOnCheckedChangeListener(btnNavBarOnCheckedChangeListener);
 //        settings = (Button) findViewById(R.id.settings);
 //        absent_button = (Button) findViewById(R.id.absent_button);
@@ -353,17 +358,15 @@ public class MainActivity extends Activity {
                 Toast.makeText(MainActivity.this, buttonView.getText(), Toast.LENGTH_SHORT).show();
             }
             switch (buttonView.getId()) {
-                case R.id.btnAll:
-//                    Intent homeIntent = new Intent(MainActivity.this, MainActivity.class);
-//                    startActivity(homeIntent);
+                case R.id.btnHome:
                     break;
 
-                case R.id.btnFile:
+                case R.id.btnSettings:
                     Intent settingsIntent = new Intent(MainActivity.this, SettingsActivity.class);
                     startActivity(settingsIntent);
                     break;
 
-                case R.id.btnPicture:
+                case R.id.btnDatabase:
                     Intent tableIntent = new Intent(MainActivity.this, DatabaseActivity.class);
                     startActivity(tableIntent);
                     break;

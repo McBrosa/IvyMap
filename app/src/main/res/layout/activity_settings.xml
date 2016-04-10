@@ -50,31 +50,24 @@
         android:background="@drawable/navbar_background"
         >
         <RadioButton
-            android:id="@+id/btnAll"
+            android:id="@+id/btnHome"
             style="@style/navbar_button"
-            android:drawableTop="@drawable/navbar_allselector"
-            android:text="All"
-            />
+            android:drawableTop="@drawable/navbar_homeselector"
+            android:text="Home"
+            android:checked="false" />
         <RadioButton
-            android:id="@+id/btnPicture"
+            android:id="@+id/btnDatabase"
             style="@style/navbar_button"
-            android:drawableTop="@drawable/navbar_pictureselector"
-            android:text="Pictures"
+            android:drawableTop="@drawable/navbar_databaseselector"
+            android:text="Database"
             android:layout_marginLeft="5dp"
-            />
+            android:checked="false" />
         <RadioButton
-            android:id="@+id/btnVideo"
+            android:id="@+id/btnSettings"
             style="@style/navbar_button"
-            android:drawableTop="@drawable/navbar_videoselector"
-            android:text="Videos"
+            android:drawableTop="@drawable/navbar_settingsselector"
+            android:text="Settings"
             android:layout_marginLeft="5dp"
-            />
-        <RadioButton
-            android:id="@+id/btnFile"
-            style="@style/navbar_button"
-            android:drawableTop="@drawable/navbar_fileselector"
-            android:text="Files"
-            android:layout_marginLeft="5dp"
-            />
+            android:checked="false" />
     </RadioGroup>
 </RelativeLayout>

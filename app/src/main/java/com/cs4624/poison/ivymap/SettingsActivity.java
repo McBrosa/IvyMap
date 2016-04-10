@@ -36,15 +36,13 @@ public class SettingsActivity extends Activity {
         password.setHint("Password");
         update = (Button) findViewById(R.id.update);
 
-        //Navbar
+        // Navbar
         RadioButton radioButton;
-        radioButton = (RadioButton) findViewById(R.id.btnAll);
+        radioButton = (RadioButton) findViewById(R.id.btnHome);
         radioButton.setOnCheckedChangeListener(btnNavBarOnCheckedChangeListener);
-        radioButton = (RadioButton) findViewById(R.id.btnPicture);
+        radioButton = (RadioButton) findViewById(R.id.btnDatabase);
         radioButton.setOnCheckedChangeListener(btnNavBarOnCheckedChangeListener);
-        radioButton = (RadioButton) findViewById(R.id.btnVideo);
-        radioButton.setOnCheckedChangeListener(btnNavBarOnCheckedChangeListener);
-        radioButton = (RadioButton) findViewById(R.id.btnFile);
+        radioButton = (RadioButton) findViewById(R.id.btnSettings);
         radioButton.setOnCheckedChangeListener(btnNavBarOnCheckedChangeListener);
 
         if(getTeam() != "")
@@ -83,15 +81,15 @@ public class SettingsActivity extends Activity {
                 Toast.makeText(SettingsActivity.this, buttonView.getText(), Toast.LENGTH_SHORT).show();
             }
             switch (buttonView.getId()) {
-                case R.id.btnAll:
+                case R.id.btnHome:
                     Intent homeIntent = new Intent(SettingsActivity.this, MainActivity.class);
                     startActivity(homeIntent);
                     break;
 
-                case R.id.btnFile:
+                case R.id.btnSettings:
                     break;
 
-                case R.id.btnPicture:
+                case R.id.btnDatabase:
                     Intent tableIntent = new Intent(SettingsActivity.this, DatabaseActivity.class);
                     startActivity(tableIntent);
                     break;

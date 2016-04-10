@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@drawable/app_trail_blur">
+    android:background="@drawable/app_trail_cartoon">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -24,8 +24,9 @@
                 android:background="@drawable/round_button"
                 android:gravity="center_vertical|center_horizontal"
                 android:layout_margin="10dp"
+                android:textSize="@dimen/text_size"
                 android:text="Absent"
-                android:alpha=".85"
+                android:alpha=".9"
                 android:textColor="#fff"
                 android:id="@+id/absent_button"
                 android:layout_weight="5" />
@@ -36,8 +37,9 @@
                 android:background="@drawable/round_button"
                 android:gravity="center_vertical|center_horizontal"
                 android:layout_margin="10dp"
+                android:textSize="@dimen/text_size"
                 android:text="Present"
-                android:alpha=".85"
+                android:alpha=".9"
                 android:textColor="#fff"
                 android:id="@+id/present_button"
                 android:layout_weight="5" />
@@ -55,7 +57,8 @@
                 android:background="@drawable/round_button"
                 android:gravity="center_vertical|center_horizontal"
                 android:layout_margin="10dp"
-                android:alpha=".85"
+                android:textSize="@dimen/text_size"
+                android:alpha=".9"
                 android:text="Sync Database"
                 android:textColor="#fff"
                 android:id="@+id/sync_button"
@@ -67,7 +70,8 @@
                 android:background="@drawable/round_button"
                 android:gravity="center_vertical|center_horizontal"
                 android:layout_margin="10dp"
-                android:alpha=".85"
+                android:textSize="@dimen/text_size"
+                android:alpha=".9"
                 android:text="hello"
                 android:textColor="#fff"
                 android:id="@+id/button4"
@@ -80,33 +84,27 @@
         android:layout_alignParentBottom="true"
         android:orientation="horizontal"
         android:background="@drawable/navbar_background"
-        >
+        android:id="@+id/radioGroup3">
         <RadioButton
-            android:id="@+id/btnAll"
+            android:id="@+id/btnHome"
             style="@style/navbar_button"
-            android:drawableTop="@drawable/navbar_allselector"
-            android:text="All"
-            />
+            android:drawableTop="@drawable/navbar_homeselector"
+            android:text="Home"
+            android:checked="false" />
         <RadioButton
-            android:id="@+id/btnPicture"
+            android:id="@+id/btnDatabase"
             style="@style/navbar_button"
-            android:drawableTop="@drawable/navbar_pictureselector"
-            android:text="Pictures"
+            android:drawableTop="@drawable/navbar_databaseselector"
+            android:text="Database"
             android:layout_marginLeft="5dp"
-            />
+            android:checked="false" />
         <RadioButton
-            android:id="@+id/btnVideo"
+            android:id="@+id/btnSettings"
             style="@style/navbar_button"
-            android:drawableTop="@drawable/navbar_videoselector"
-            android:text="Videos"
+            android:drawableTop="@drawable/navbar_settingsselector"
+            android:text="Settings"
             android:layout_marginLeft="5dp"
-            />
-        <RadioButton
-            android:id="@+id/btnFile"
-            style="@style/navbar_button"
-            android:drawableTop="@drawable/navbar_fileselector"
-            android:text="Files"
-            android:layout_marginLeft="5dp"
-            />
+            android:checked="false" />
     </RadioGroup>
+
 </RelativeLayout>

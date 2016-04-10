@@ -210,4 +210,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         return tableString;
     }
+
+    public String getDatabaseName()
+    {
+        return DATABASE_NAME;
+    }
 }
