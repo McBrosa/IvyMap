@@ -64,6 +64,10 @@ public class PoisonIvy {
     }
 
     public String getPlantId() {
+        if(plantId == null)
+        {
+            return "";
+        }
         return plantId;
     }
 

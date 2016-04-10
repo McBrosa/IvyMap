@@ -7,7 +7,9 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.Toast;
 
 
@@ -34,9 +36,29 @@ public class SettingsActivity extends Activity {
         password.setHint("Password");
         update = (Button) findViewById(R.id.update);
 
-        team.setText(getTeam());
-        username.setText(getUsername());
-        password.setText(getPassword());
+        //Navbar
+        RadioButton radioButton;
+        radioButton = (RadioButton) findViewById(R.id.btnAll);
+        radioButton.setOnCheckedChangeListener(btnNavBarOnCheckedChangeListener);
+        radioButton = (RadioButton) findViewById(R.id.btnPicture);
+        radioButton.setOnCheckedChangeListener(btnNavBarOnCheckedChangeListener);
+        radioButton = (RadioButton) findViewById(R.id.btnVideo);
+        radioButton.setOnCheckedChangeListener(btnNavBarOnCheckedChangeListener);
+        radioButton = (RadioButton) findViewById(R.id.btnFile);
+        radioButton.setOnCheckedChangeListener(btnNavBarOnCheckedChangeListener);
+
+        if(getTeam() != "")
+        {
+            team.setText(getTeam());
+        }
+        if(getUsername() != "")
+        {
+            username.setText(getUsername());
+        }
+        if(getPassword() != "")
+        {
+            password.setText(getPassword());
+        }
 
         update.setOnClickListener(new View.OnClickListener() {
             public void onClick(View arg0) {
@@ -53,6 +75,35 @@ public class SettingsActivity extends Activity {
                 Toast.makeText(SettingsActivity.this, "Settings Updated", Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    private CompoundButton.OnCheckedChangeListener btnNavBarOnCheckedChangeListener = new CompoundButton.OnCheckedChangeListener() {
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            if (isChecked) {
+                Toast.makeText(SettingsActivity.this, buttonView.getText(), Toast.LENGTH_SHORT).show();
+            }
+            switch (buttonView.getId()) {
+                case R.id.btnAll:
+                    Intent homeIntent = new Intent(SettingsActivity.this, MainActivity.class);
+                    startActivity(homeIntent);
+                    break;
+
+                case R.id.btnFile:
+                    break;
+
+                case R.id.btnPicture:
+                    Intent tableIntent = new Intent(SettingsActivity.this, DatabaseActivity.class);
+                    startActivity(tableIntent);
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    };
+
+    @Override
+    public void onBackPressed() {
     }
 
     private String getUsername()

@@ -3,139 +3,110 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@drawable/app_trail_blur">
 
-    <EditText
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/leafId"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignRight="@+id/leafType"
-        android:layout_alignEnd="@+id/leafType" />
+        android:orientation="vertical"
+        android:weightSum="1"
+        android:id="@+id/linearLayout">
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:weightSum="10"
+            android:layout_weight="3.09">
+            <Button
+                android:layout_width="100dp"
+                android:layout_height="163dp"
+                android:background="@drawable/round_button"
+                android:gravity="center_vertical|center_horizontal"
+                android:layout_margin="10dp"
+                android:text="Absent"
+                android:alpha=".85"
+                android:textColor="#fff"
+                android:id="@+id/absent_button"
+                android:layout_weight="5" />
 
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/leafType"
-        android:layout_below="@+id/leafId"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_toLeftOf="@+id/delete"
-        android:layout_toStartOf="@+id/delete" />
+            <Button
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
+                android:background="@drawable/round_button"
+                android:gravity="center_vertical|center_horizontal"
+                android:layout_margin="10dp"
+                android:text="Present"
+                android:alpha=".85"
+                android:textColor="#fff"
+                android:id="@+id/present_button"
+                android:layout_weight="5" />
+        </TableRow>
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight=".50"
-        android:text="Insert"
-        android:id="@+id/insert"
-        android:layout_alignBottom="@+id/leafId"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_toRightOf="@+id/leafId"
-        android:layout_toEndOf="@+id/leafId" />
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:weightSum="10"
+            android:layout_weight="3.09">
+            <Button
+                android:layout_width="100dp"
+                android:layout_height="163dp"
+                android:background="@drawable/round_button"
+                android:gravity="center_vertical|center_horizontal"
+                android:layout_margin="10dp"
+                android:alpha=".85"
+                android:text="Sync Database"
+                android:textColor="#fff"
+                android:id="@+id/sync_button"
+                android:layout_weight="5" />
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Online Table"
-        android:id="@+id/show"
+            <Button
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
+                android:background="@drawable/round_button"
+                android:gravity="center_vertical|center_horizontal"
+                android:layout_margin="10dp"
+                android:alpha=".85"
+                android:text="hello"
+                android:textColor="#fff"
+                android:id="@+id/button4"
+                android:layout_weight="5" />
+        </TableRow>
+    </LinearLayout>
+    <RadioGroup
+        android:layout_width="fill_parent"
+        android:layout_height="60dp"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignRight="@+id/sync"
-        android:layout_alignEnd="@+id/sync" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Lat"
-        android:id="@+id/latText"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/leafType"
-        android:layout_toLeftOf="@+id/delete"
-        android:layout_toStartOf="@+id/delete" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Long"
-        android:id="@+id/longText"
-        android:layout_below="@+id/latText"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_toStartOf="@+id/backup"
-        android:layout_toLeftOf="@+id/backup" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/records"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_above="@+id/show"
-        android:maxLines = "1000"
-        android:scrollbars = "vertical"
-        android:layout_below="@+id/sync" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight=".50"
-        android:text="Sync"
-        android:id="@+id/sync"
-        android:layout_below="@+id/settings"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignRight="@+id/latText"
-        android:layout_alignEnd="@+id/latText" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Delete Last Insert"
-        android:id="@+id/delete"
-        android:layout_alignBottom="@+id/leafType"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Local Table"
-        android:id="@+id/localTable"
-        android:layout_alignBottom="@+id/show"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_toRightOf="@+id/show"
-        android:layout_toEndOf="@+id/show" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Backup to SD"
-        android:id="@+id/backup"
-        android:layout_alignBottom="@+id/sync"
-        android:layout_toRightOf="@+id/sync"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Settings"
-        android:id="@+id/settings"
-        android:layout_below="@+id/longText"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
-
+        android:orientation="horizontal"
+        android:background="@drawable/navbar_background"
+        >
+        <RadioButton
+            android:id="@+id/btnAll"
+            style="@style/navbar_button"
+            android:drawableTop="@drawable/navbar_allselector"
+            android:text="All"
+            />
+        <RadioButton
+            android:id="@+id/btnPicture"
+            style="@style/navbar_button"
+            android:drawableTop="@drawable/navbar_pictureselector"
+            android:text="Pictures"
+            android:layout_marginLeft="5dp"
+            />
+        <RadioButton
+            android:id="@+id/btnVideo"
+            style="@style/navbar_button"
+            android:drawableTop="@drawable/navbar_videoselector"
+            android:text="Videos"
+            android:layout_marginLeft="5dp"
+            />
+        <RadioButton
+            android:id="@+id/btnFile"
+            style="@style/navbar_button"
+            android:drawableTop="@drawable/navbar_fileselector"
+            android:text="Files"
+            android:layout_marginLeft="5dp"
+            />
+    </RadioGroup>
 </RelativeLayout>

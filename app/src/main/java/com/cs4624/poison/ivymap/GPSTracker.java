@@ -190,10 +190,10 @@ public class GPSTracker extends Service implements LocationListener {
     public void onLocationChanged(Location location) {
         latitude = location.getLatitude();
         longitude = location.getLongitude();
-        TextView latTxt = (TextView) ((Activity) mContext).findViewById(R.id.latText);
-        latTxt.setText("Lat: " + latitude);
-        TextView longTxt = (TextView) ((Activity) mContext).findViewById(R.id.longText);
-        longTxt.setText("Long: " + longitude);
+//        TextView latTxt = (TextView) ((Activity) mContext).findViewById(R.id.latText);
+//        latTxt.setText("Lat: " + latitude);
+//        TextView longTxt = (TextView) ((Activity) mContext).findViewById(R.id.longText);
+//        longTxt.setText("Long: " + longitude);
     }
 
     @Override

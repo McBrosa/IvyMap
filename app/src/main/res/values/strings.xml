@@ -10,4 +10,10 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
+
+    <string-array name="poison_ivy_array">
+        <item>Vine/Linnea</item>
+        <item>Creeping</item>
+        <item>Shrub</item>
+    </string-array>
 </resources>

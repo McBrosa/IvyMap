@@ -196,7 +196,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         String tableString = String.format("Table %s:\n", TABLE_NAME);
         Cursor allRows = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
-        if (allRows.moveToFirst()) {
+        if (allRows.moveToLast()) {
             String[] columnNames = allRows.getColumnNames();
             do {
                 for (String name : columnNames) {
@@ -205,7 +205,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 }
                 tableString += "\n";
 
-            } while (allRows.moveToNext());
+            } while (allRows.moveToPrevious());
         }
 
         return tableString;

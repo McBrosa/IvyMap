@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+    <RadioGroup
+        android:layout_width="fill_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:background="@drawable/navbar_background"
+        android:id="@+id/radioGroup">
+        <RadioButton
+            android:id="@+id/btnAll"
+            style="@style/navbar_button"
+            android:drawableTop="@drawable/navbar_allselector"
+            android:text="All"
+            />
+        <RadioButton
+            android:id="@+id/btnPicture"
+            style="@style/navbar_button"
+            android:drawableTop="@drawable/navbar_pictureselector"
+            android:text="Pictures"
+            android:layout_marginLeft="5dp"
+            />
+        <RadioButton
+            android:id="@+id/btnVideo"
+            style="@style/navbar_button"
+            android:drawableTop="@drawable/navbar_videoselector"
+            android:text="Videos"
+            android:layout_marginLeft="5dp"
+            />
+        <RadioButton
+            android:id="@+id/btnFile"
+            style="@style/navbar_button"
+            android:drawableTop="@drawable/navbar_fileselector"
+            android:text="Files"
+            android:layout_marginLeft="5dp"
+            />
+    </RadioGroup>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Delete Last Record"
+        android:id="@+id/button_delete"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/records"
+        android:scrollbars = "vertical"
+        android:layout_below="@+id/button_delete"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_above="@+id/radioGroup"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+</RelativeLayout>

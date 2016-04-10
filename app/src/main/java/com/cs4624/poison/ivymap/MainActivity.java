@@ -15,8 +15,13 @@ import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.text.method.ScrollingMovementMethod;
@@ -54,9 +59,9 @@ import java.util.Map;
 public class MainActivity extends Activity {
     private EditText leafId, leafType;
     private Button insert, delete, show, sync, localTable, backup, settings;
-    private TextView records, latText, longText;
-    private GPSTracker location;
-    private DatabaseHandler database;
+    private Button absent_button, present_button, sync_button;
+    public GPSTracker location;
+    public DatabaseHandler database;
     private InputMethodManager inputManager;
 
     public static final String MyPREFERENCES = "MyPrefs";
@@ -65,8 +70,9 @@ public class MainActivity extends Activity {
     public static final String Team = "teamKey";
     SharedPreferences sharedpreferences;
 
+    private static final String insertUrl = "teamKey";
     private final static int MY_PERMISSIONS_REQUEST_LOCATION = 0;
-    public static final int OVERLAY_PERMISSION_REQ_CODE = 1234;
+    private static final int OVERLAY_PERMISSION_REQ_CODE = 1234;
     private static final int REQUEST_WRITE_STORAGE = 112;
 
     protected void onCreate(Bundle savedInstanceState){
@@ -100,21 +106,33 @@ public class MainActivity extends Activity {
         sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
 
         // Initialize buttons and views
-        leafId = (EditText) findViewById(R.id.leafId);
-        leafId.setHint("Leaf ID");
-        leafType = (EditText) findViewById(R.id.leafType);
-        leafType.setHint("Leaf Type");
-        settings = (Button) findViewById(R.id.settings);
-        insert = (Button) findViewById(R.id.insert);
-        show = (Button) findViewById(R.id.show);
-        delete =(Button) findViewById(R.id.delete);
-        localTable =(Button) findViewById(R.id.localTable);
-        sync =(Button) findViewById(R.id.sync);
-        backup =(Button) findViewById(R.id.backup);
-        records = (TextView) findViewById(R.id.records);
-        records.setMovementMethod(new ScrollingMovementMethod());
-        latText = (TextView) findViewById(R.id.latText);
-        longText = (TextView) findViewById(R.id.longText);
+        present_button = (Button) findViewById(R.id.present_button);
+        absent_button = (Button) findViewById(R.id.absent_button);
+        sync_button = (Button) findViewById(R.id.sync_button);
+        // Navbar
+        RadioButton radioButton;
+        radioButton = (RadioButton) findViewById(R.id.btnAll);
+        radioButton.setOnCheckedChangeListener(btnNavBarOnCheckedChangeListener);
+        radioButton = (RadioButton) findViewById(R.id.btnPicture);
+        radioButton.setOnCheckedChangeListener(btnNavBarOnCheckedChangeListener);
+        radioButton = (RadioButton) findViewById(R.id.btnVideo);
+        radioButton.setOnCheckedChangeListener(btnNavBarOnCheckedChangeListener);
+        radioButton = (RadioButton) findViewById(R.id.btnFile);
+        radioButton.setOnCheckedChangeListener(btnNavBarOnCheckedChangeListener);
+//        settings = (Button) findViewById(R.id.settings);
+//        absent_button = (Button) findViewById(R.id.absent_button);
+//        present_button = (Button) findViewById(R.id.present_button);
+//        sync_button= (Button) findViewById(R.id.sync_button);
+//        insert = (Button) findViewById(R.id.insert);
+//        show = (Button) findViewById(R.id.show);
+//        delete =(Button) findViewById(R.id.delete);
+//        localTable =(Button) findViewById(R.id.localTable);
+//        sync =(Button) findViewById(R.id.sync);
+//        backup =(Button) findViewById(R.id.backup);
+//        records = (TextView) findViewById(R.id.records);
+//        records.setMovementMethod(new ScrollingMovementMethod());
+//        latText = (TextView) findViewById(R.id.latText);
+//        longText = (TextView) findViewById(R.id.longText);
 
         // Initialize the GPS
         inputManager = (InputMethodManager) getSystemService(getApplicationContext().INPUT_METHOD_SERVICE);
@@ -124,73 +142,127 @@ public class MainActivity extends Activity {
             location.showSettingsAlert();
         }
 
-        settings.setOnClickListener(new View.OnClickListener() {
+//        settings.setOnClickListener(new View.OnClickListener() {
+//            public void onClick(View arg0) {
+//                // Start SettingsActivity.class
+//                Intent myIntent = new Intent(MainActivity.this,
+//                        SettingsActivity.class);
+//                startActivity(myIntent);
+//            }
+//        });
+
+        present_button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View arg0) {
-                // Start SettingsActivity.class
-                Intent myIntent = new Intent(MainActivity.this,
-                        SettingsActivity.class);
-                startActivity(myIntent);
-            }
+                AlertDialog.Builder builder = new AlertDialog.Builder(arg0.getContext());
+                builder.setTitle("Pick Type")
+                        .setItems(R.array.poison_ivy_array, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                // The 'which' argument contains the index position
+                                // of the selected item
+                                String type = "";
+                                String notifyType = "";
+                                switch (which) {
+                                    case 1:
+                                        type = "V";
+                                        notifyType = "Vine/Linnea";
+                                        break;
+                                    case 2:
+                                        type = "C";
+                                        notifyType = "Creeping";
+                                        break;
+                                    case 3:
+                                        type = "S";
+                                        notifyType = "Shrub";
+                                        break;
+                                }
+                                final String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+                                PoisonIvy poisonIvy = new PoisonIvy(getTeam(), null, type, location.getLatitude(), location.getLongitude(), timeStamp, false);
+                                database.addPI(poisonIvy);
+                                Toast.makeText(getApplicationContext(), notifyType + " Recorded", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                builder.show();
+               }
         });
 
-        show.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-                records.setText("");
-                if (getUsername().isEmpty() && getPassword().isEmpty()) {
-                    Toast.makeText(getApplicationContext(), "Please provide a username and password for MySQL database", Toast.LENGTH_SHORT).show();
-                }
-                else {
-                    RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
-                    String showURL = "https://oak.ppws.vt.edu/~cs4624/post/show.php";
-                    StringRequest jsonObjectRequest = new StringRequest(Request.Method.POST, showURL, new Response.Listener<String>() {
-                        @Override
-                        public void onResponse(String response) {
-                                records.append(prettyJson(response));
-                        }
-                    }, new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                        }
-
-                    }){
-                        @Override
-                        protected Map<String, String> getParams() throws AuthFailureError {
-                            Map<String, String> parameters = new HashMap<String, String>();
-                            parameters.put("username", getUsername());
-                            parameters.put("password", getPassword());
-                            return parameters;
-                        }
-                    };
-                    requestQueue.add(jsonObjectRequest);
-                }
-            }
-        });
-
-        // Inserts records into the local SQLite database
-        insert.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view){
+        absent_button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View arg0) {
                 final String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-                PoisonIvy poisonIvy = new PoisonIvy(getTeam(), leafId.getText().toString(),leafType.getText().toString(),location.getLatitude(), location.getLongitude(),timeStamp,false);
+                PoisonIvy poisonIvy = new PoisonIvy(getTeam(), null, "A", location.getLatitude(), location.getLongitude(), timeStamp, false);
                 database.addPI(poisonIvy);
-
-                leafType.setText("");
-                leafId.setText("");
-                Toast.makeText(getApplicationContext(), "Record Inserted", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Absence Recorded", Toast.LENGTH_SHORT).show();
             }
         });
 
+//        show.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+//                records.setText("");
+//                if (getUsername().isEmpty() || getPassword().isEmpty()) {
+//                    Toast.makeText(getApplicationContext(), "Please provide a username and password for MySQL database", Toast.LENGTH_SHORT).show();
+//                }
+//                else {
+//                    RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
+//                    String showURL = "https://oak.ppws.vt.edu/~cs4624/post/show.php";
+//                    StringRequest jsonObjectRequest = new StringRequest(Request.Method.POST, showURL, new Response.Listener<String>() {
+//                        @Override
+//                        public void onResponse(String response) {
+//                                records.append(prettyJson(response));
+//                        }
+//                    }, new Response.ErrorListener() {
+//                        @Override
+//                        public void onErrorResponse(VolleyError error) {
+//                        }
+//
+//                    }){
+//                        @Override
+//                        protected Map<String, String> getParams() throws AuthFailureError {
+//                            Map<String, String> parameters = new HashMap<String, String>();
+//                            parameters.put("username", getUsername());
+//                            parameters.put("password", getPassword());
+//                            return parameters;
+//                        }
+//                    };
+//                    requestQueue.add(jsonObjectRequest);
+//                }
+//            }
+//        });
+//
+//        // Inserts records into the local SQLite database
+//        insert.setOnClickListener(new View.OnClickListener(){
+//            @Override
+//            public void onClick(View view){
+//                final String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+//                PoisonIvy poisonIvy = new PoisonIvy(getTeam(), leafId.getText().toString(),leafType.getText().toString(),location.getLatitude(), location.getLongitude(),timeStamp,false);
+//                database.addPI(poisonIvy);
+//
+//                Toast.makeText(getApplicationContext(), "Record Inserted", Toast.LENGTH_SHORT).show();
+//            }
+//        });
+//
+//        // Inserts records into the local SQLite database
+//        absent_button.setOnClickListener(new View.OnClickListener(){
+//            @Override
+//            public void onClick(View view){
+//                final String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+//                PoisonIvy poisonIvy = new PoisonIvy(getTeam(), null,"A",location.getLatitude(), location.getLongitude(),timeStamp,false);
+//                database.addPI(poisonIvy);
+//
+//                Toast.makeText(getApplicationContext(), "Absence Recorded", Toast.LENGTH_SHORT).show();
+//            }
+//        });
+//
         // Gets all the unsynced poison ivy records and inserts them into the database.
-        sync.setOnClickListener(new View.OnClickListener(){
+        sync_button.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
-                if (getUsername().isEmpty() && getPassword().isEmpty()) {
+                if (getUsername().isEmpty() || getPassword().isEmpty()) {
                     Toast.makeText(getApplicationContext(), "Please provide a username and password for MySQL database", Toast.LENGTH_SHORT).show();
                 }
                 else {
-                    String insertURL = "https://oak.ppws.vt.edu/~cs4624/post/insert.php";
+                    //String insertURL = "https://oak.ppws.vt.edu/~cs4624/post/insert.php";
+                    String insertURL = "http://vtpiat.netau.net/insert.php";
                     Toast.makeText(getApplicationContext(), "Updating...", Toast.LENGTH_SHORT).show();
                     RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
                     if (!database.getAllUnsyncedPIs().isEmpty()) {
@@ -205,7 +277,7 @@ public class MainActivity extends Activity {
                                 @Override
                                 public void onErrorResponse(VolleyError error) {
                                     database.updateSyncStatus(pi, false);
-                                    Toast.makeText(getApplicationContext(), "Error uploading... Please try again", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getApplicationContext(), error.getLocalizedMessage() + " Error uploading... Please try again", Toast.LENGTH_SHORT).show();
                                 }
                             }) {
                                 @Override
@@ -231,48 +303,74 @@ public class MainActivity extends Activity {
                 }
             }
         });
-        delete.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view){
-                // Confirmation box for deleting the most recent record
-                new AlertDialog.Builder(view.getContext())
-                        .setTitle("Confirm")
-                        .setMessage("Do you really want to do perform this action?")
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int whichButton) {
-                                // Delete the last record and display message confirmation
-                                database.deleteMostRecentPI();
-                                Toast.makeText(getApplicationContext(), "Most Recent Record was Deleted", Toast.LENGTH_SHORT).show();
-                            }})
-                        .setNegativeButton(android.R.string.no,new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog,int id) {
-                                // if this button is clicked, just close
-                                // the dialog box and do nothing
-                                dialog.cancel();
-                            }
-                        }).show();
-            }
-        });
 
-        localTable.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view){
-                inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-                records.setText("");
-                records.append(database.getTableAsString());
-            }
-        });
-
-        backup.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view){
-                inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-                backUpDatabaseToSDCard();
-                Toast.makeText(getApplicationContext(), "Backup Complete", Toast.LENGTH_SHORT).show();
-            }
-        });
+//        delete.setOnClickListener(new View.OnClickListener(){
+//            @Override
+//            public void onClick(View view){
+//                // Confirmation box for deleting the most recent record
+//                new AlertDialog.Builder(view.getContext())
+//                        .setTitle("Confirm")
+//                        .setMessage("Do you really want to do perform this action?")
+//                        .setIcon(android.R.drawable.ic_dialog_alert)
+//                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+//                            public void onClick(DialogInterface dialog, int whichButton) {
+//                                // Delete the last record and display message confirmation
+//                                database.deleteMostRecentPI();
+//                                Toast.makeText(getApplicationContext(), "Most Recent Record was Deleted", Toast.LENGTH_SHORT).show();
+//                            }})
+//                        .setNegativeButton(android.R.string.no,new DialogInterface.OnClickListener() {
+//                            public void onClick(DialogInterface dialog,int id) {
+//                                // if this button is clicked, just close
+//                                // the dialog box and do nothing
+//                                dialog.cancel();
+//                            }
+//                        }).show();
+//            }
+//        });
+//
+//        localTable.setOnClickListener(new View.OnClickListener(){
+//            @Override
+//            public void onClick(View view){
+//                inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+//                records.setText("");
+//                records.append(database.getTableAsString());
+//            }
+//        });
+//
+//        backup.setOnClickListener(new View.OnClickListener(){
+//            @Override
+//            public void onClick(View view){
+//                inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+//                backUpDatabaseToSDCard();
+//                Toast.makeText(getApplicationContext(), "Backup Complete", Toast.LENGTH_SHORT).show();
+//            }
+//        });
     }
+
+    private CompoundButton.OnCheckedChangeListener btnNavBarOnCheckedChangeListener = new CompoundButton.OnCheckedChangeListener() {
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            if (isChecked) {
+                Toast.makeText(MainActivity.this, buttonView.getText(), Toast.LENGTH_SHORT).show();
+            }
+            switch (buttonView.getId()) {
+                case R.id.btnAll:
+//                    Intent homeIntent = new Intent(MainActivity.this, MainActivity.class);
+//                    startActivity(homeIntent);
+                    break;
+
+                case R.id.btnFile:
+                    Intent settingsIntent = new Intent(MainActivity.this, SettingsActivity.class);
+                    startActivity(settingsIntent);
+                    break;
+
+                case R.id.btnPicture:
+                    Intent tableIntent = new Intent(MainActivity.this, DatabaseActivity.class);
+                    startActivity(tableIntent);
+                    break;
+            }
+        }
+    };
+
     private void backUpDatabaseToSDCard() {
         try {
             File sd = Environment.getExternalStorageDirectory();
