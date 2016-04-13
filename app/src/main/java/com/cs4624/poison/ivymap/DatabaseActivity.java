@@ -1,27 +1,24 @@
+/*
+* Displays the local table in an activity.
+*
+* @date 4/10/16
+* @version 1.0
+*/
 package com.cs4624.poison.ivymap;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.widget.TableRow.LayoutParams;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.text.method.ScrollingMovementMethod;
 import android.view.Gravity;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.EditText;
-import android.widget.GridLayout;
 import android.widget.RadioButton;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -29,22 +26,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class DatabaseActivity extends Activity {
-    private TextView records;
     private Button button_delete;
     private DatabaseHandler database;
     private TableLayout table_layout;
     private ProgressDialog PD;
 
-    public static final String MyPREFERENCES = "MyPrefs" ;
-    public static final String Username = "usernameKey";
-    public static final String Password = "passwordKey";
-    public static final String Team = "teamKey";
-    SharedPreferences sharedpreferences;
-
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_database);
-        sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
 
         button_delete = (Button) findViewById(R.id.button_delete);
         table_layout = (TableLayout) findViewById(R.id.tableLayout1);
@@ -60,16 +49,23 @@ public class DatabaseActivity extends Activity {
 
         database = new DatabaseHandler(getApplicationContext());
         BuildTable();
+
+        /*
+            On click deletes the last record. If there are no more records and is click
+            the data base will be reset.
+         */
         button_delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // Confirmation box for deleting the most recent record
                 if(database.getPICount() == 0)
                 {
+                    // Resets the database
                     database.onUpgrade(database.getWritableDatabase(), 1, 1);
                     Toast.makeText(getApplicationContext(), "Database Reset", Toast.LENGTH_SHORT).show();
                 }
                 else {
+                    // Confirm that the user wants to delete the record
                     new AlertDialog.Builder(view.getContext())
                             .setTitle("Confirm")
                             .setMessage("Do you really want to do perform this action?")
@@ -95,11 +91,9 @@ public class DatabaseActivity extends Activity {
         });
     }
 
+    // Listener for navbar that handles changing activities.
     private CompoundButton.OnCheckedChangeListener btnNavBarOnCheckedChangeListener = new CompoundButton.OnCheckedChangeListener() {
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            if (isChecked) {
-                Toast.makeText(DatabaseActivity.this, buttonView.getText(), Toast.LENGTH_SHORT).show();
-            }
             switch (buttonView.getId()) {
                 case R.id.btnHome:
                     Intent homeIntent = new Intent(DatabaseActivity.this, MainActivity.class);
@@ -117,6 +111,9 @@ public class DatabaseActivity extends Activity {
         }
     };
 
+    /*
+        Build a TextView Representation of the local SQLite table
+    */
     private void BuildTable() {
         Cursor c = database.readEntry(getApplicationContext());
 

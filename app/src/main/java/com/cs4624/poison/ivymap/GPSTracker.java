@@ -10,23 +10,28 @@
 
 package com.cs4624.poison.ivymap;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class GPSTracker extends Service implements LocationListener {
     private final Context mContext;
+    private  Activity activity;
 
     // flag for GPS status
     boolean isGPSEnabled = false;
@@ -42,20 +47,39 @@ public class GPSTracker extends Service implements LocationListener {
     double longitude; // longitude
 
     // The minimum distance to change Updates in meters
-    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1; // 3 meters
+    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 0; // 1 meter
 
     // The minimum time between updates in milliseconds
-    private static final long MIN_TIME_BW_UPDATES = 1000 * 1 * 1; // 2 minute
+    private static final long MIN_TIME_BW_UPDATES = 1000 * 5; // 5 seconds
+
+    private final static int MY_PERMISSIONS = 0;
+    private static final int OVERLAY_PERMISSION_REQ_CODE = 1234;
+    private static final int REQUEST_WRITE_STORAGE = 112;
 
     // Declaring a Location Manager
     protected LocationManager locationManager;
 
-    public GPSTracker(Context context) {
+    public GPSTracker(Context context, Activity act) {
         this.mContext = context;
+        this.activity = act;
         getLocation();
     }
 
     public Location getLocation() {
+        // Check to see if there is permission for location services
+        if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+                ) {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + mContext.getPackageName()));
+            this.activity.startActivityForResult(intent, OVERLAY_PERMISSION_REQ_CODE);
+            ActivityCompat.requestPermissions(
+                    this.activity,
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE},
+                    MY_PERMISSIONS);
+        }
         try {
             locationManager = (LocationManager) mContext
                     .getSystemService(LOCATION_SERVICE);
@@ -112,15 +136,15 @@ public class GPSTracker extends Service implements LocationListener {
         return location;
     }
 
-    /**
-     * Stop using GPS listener
-     * Calling this function will stop using GPS in your app
-     * */
-    public void stopUsingGPS(){
-        if(locationManager != null){
-            locationManager.removeUpdates(GPSTracker.this);
-        }
-    }
+//    /**
+//     * Stop using GPS listener
+//     * Calling this function will stop using GPS in your app
+//     * */
+//    public void stopUsingGPS(){
+//        if(locationManager != null){
+//            locationManager.removeUpdates(GPSTracker.this);
+//        }
+//    }
 
     /**
      * Function to get latitude
@@ -188,12 +212,10 @@ public class GPSTracker extends Service implements LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
+        this.location = location;
         latitude = location.getLatitude();
         longitude = location.getLongitude();
-//        TextView latTxt = (TextView) ((Activity) mContext).findViewById(R.id.latText);
-//        latTxt.setText("Lat: " + latitude);
-//        TextView longTxt = (TextView) ((Activity) mContext).findViewById(R.id.longText);
-//        longTxt.setText("Long: " + longitude);
+        Toast.makeText(mContext, "Lat: " + latitude +  ", Long: " + longitude, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -213,5 +235,4 @@ public class GPSTracker extends Service implements LocationListener {
     public IBinder onBind(Intent arg0) {
         return null;
     }
-
 }
