@@ -213,9 +213,8 @@ public class GPSTracker extends Service implements LocationListener {
     @Override
     public void onLocationChanged(Location location) {
         this.location = location;
-        latitude = location.getLatitude();
-        longitude = location.getLongitude();
-        Toast.makeText(mContext, "Lat: " + latitude +  ", Long: " + longitude, Toast.LENGTH_SHORT).show();
+        getLatitude();
+        getLongitude();
     }
 
     @Override

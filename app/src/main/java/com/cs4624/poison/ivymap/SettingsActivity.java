@@ -28,18 +28,13 @@ public class SettingsActivity extends Activity {
     private EditText username, password, team;
     private Button update;
     private DatabaseHandler dbHandler;
-
-    public static final String MyPREFERENCES = "MyPrefs" ;
-    public static final String Username = "usernameKey";
-    public static final String Password = "passwordKey";
-    public static final String Team = "teamKey";
-    SharedPreferences sharedpreferences;
+    private AppPreferences sharedpreferences;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
-        sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+        sharedpreferences = new AppPreferences(getApplicationContext());
         dbHandler = new DatabaseHandler(getApplicationContext());
 
         team = (EditText) findViewById(R.id.team);
@@ -59,31 +54,25 @@ public class SettingsActivity extends Activity {
         radioButton = (RadioButton) findViewById(R.id.btnSettings);
         radioButton.setOnCheckedChangeListener(btnNavBarOnCheckedChangeListener);
 
-        if(getTeam() != "")
+        if(sharedpreferences.getTeam() != "")
         {
-            team.setText(getTeam());
+            team.setText(sharedpreferences.getTeam());
         }
-        if(getUsername() != "")
+        if(sharedpreferences.getUsername() != "")
         {
-            username.setText(getUsername());
+            username.setText(sharedpreferences.getUsername());
         }
-        if(getPassword() != "")
+        if(sharedpreferences.getPassword() != "")
         {
-            password.setText(getPassword());
+            password.setText(sharedpreferences.getPassword());
         }
 
         update.setOnClickListener(new View.OnClickListener() {
             public void onClick(View arg0) {
-                String un  = username.getText().toString();
-                String p  = password.getText().toString();
-                String t  = team.getText().toString();
-                exportDB();
-                SharedPreferences.Editor editor = sharedpreferences.edit();
-
-                editor.putString(Username, un);
-                editor.putString(Password, p);
-                editor.putString(Team, t);
-                editor.commit();
+                sharedpreferences.saveUsername(username.getText().toString());
+                sharedpreferences.savePassword(password.getText().toString());
+                sharedpreferences.saveTeam(team.getText().toString());
+                //exportDB();
                 Toast.makeText(SettingsActivity.this, "Settings Updated", Toast.LENGTH_LONG).show();
             }
         });
@@ -106,13 +95,6 @@ public class SettingsActivity extends Activity {
                 destination.transferFrom(source, 0, source.size());
                 source.close();
                 destination.close();
-//            InputStream is = new FileInputStream(currentDB);
-//            OutputStream os = new FileOutputStream(backupDB);
-//            byte[] copy = new byte[is.available()];
-//            is.read(copy);
-//            os.write(copy);
-//            is.close();
-//            os.close();
                 Toast.makeText(this, "DB Exported!", Toast.LENGTH_LONG).show();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -148,20 +130,5 @@ public class SettingsActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-    }
-
-    private String getUsername()
-    {
-        return sharedpreferences.getString(Username, "");
-    }
-
-    private String getPassword()
-    {
-        return sharedpreferences.getString(Password, "");
-    }
-
-    private String getTeam()
-    {
-        return sharedpreferences.getString(Team, "");
     }
 }

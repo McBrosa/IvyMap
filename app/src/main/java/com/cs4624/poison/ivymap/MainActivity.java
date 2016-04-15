@@ -1,6 +1,5 @@
 package com.cs4624.poison.ivymap;
 
-import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -10,17 +9,10 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.Settings;
-import android.support.v4.app.ActivityCompat;
-import android.util.Base64;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -35,43 +27,17 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.nio.channels.FileChannel;
-import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
 import java.util.Map;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 public class MainActivity extends Activity {
 
     private Button absent_button, present_button, sync_button, currentL_button;
-    public GPSTracker location;
-    public DatabaseHandler database;
-    private double latitude, longitude;
-   // private InputMethodManager inputManager;
-
-    public static final String MyPREFERENCES = "MyPrefs";
-    public static final String Username = "usernameKey";
-    public static final String Password = "passwordKey";
-    public static final String Team = "teamKey";
-    SharedPreferences sharedpreferences;
+    private GPSTracker location;
+    private DatabaseHandler database;
+    private AppPreferences sharedpreferences;
 
     private String state = "IDLE";
     private int counter_key = 0;
@@ -87,8 +53,8 @@ public class MainActivity extends Activity {
 
         // Create or get the table
         database = new DatabaseHandler(getApplicationContext());
-
-        sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+        // Set up shared preferences if there are any.
+        sharedpreferences = new AppPreferences(getApplicationContext());
 
         // Initialize buttons and views
         present_button = (Button) findViewById(R.id.present_button);
@@ -108,13 +74,22 @@ public class MainActivity extends Activity {
 
         // Initialize the GPS
         //inputManager = (InputMethodManager) getSystemService(getApplicationContext().INPUT_METHOD_SERVICE);
-        getLocation();
+        location = new GPSTracker(getApplicationContext(), this);
+        if (location.canGetLocation()) {
+
+            location.getLatitude();
+            location.getLongitude();
+        } else {
+            // can't get location
+            // GPS or Network is not enabled
+            // Ask user to enable GPS/network in settings
+            location.showSettingsAlert();
+        }
 
         present_button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View arg0) {
-                getLocation();
+                // Display dialog for user to choose type and put in optional plant id
                 AlertDialog.Builder builder = new AlertDialog.Builder(arg0.getContext());
-
                 // Plant Id input
                 final EditText input = new EditText(arg0.getContext());
                 input.setHint("Plant ID (Optional)");
@@ -142,78 +117,46 @@ public class MainActivity extends Activity {
                                         notifyType = "Shrub";
                                         break;
                                 }
+                                // Add the poison ivy record to the local database
                                 final String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-                                PoisonIvy poisonIvy = new PoisonIvy(getTeam(), plantId, type, location.getLatitude(), location.getLongitude(), timeStamp, false);
+                                PoisonIvy poisonIvy = new PoisonIvy(sharedpreferences.getTeam(), plantId, type, location.getLatitude(), location.getLongitude(), timeStamp, false);
                                 database.addPI(poisonIvy);
+                                // Update the sync button to show the new number of unsynced records
                                 sync_button.setText("Sync " + database.getAllUnsyncedCount() + " Records");
                                 Toast.makeText(getApplicationContext(), notifyType + " Recorded", Toast.LENGTH_SHORT).show();
                             }
                         });
                 builder.show();
-               }
+            }
         });
 
         absent_button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View arg0) {
-                getLocation();
+                // Add an absent poison ivy record to local database
                 final String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-                PoisonIvy poisonIvy = new PoisonIvy(getTeam(), null, "A", location.getLatitude(), location.getLongitude(), timeStamp, false);
+                PoisonIvy poisonIvy = new PoisonIvy(sharedpreferences.getTeam(), null, "A", location.getLatitude(), location.getLongitude(), timeStamp, false);
                 database.addPI(poisonIvy);
+
                 sync_button.setText("Sync " + database.getAllUnsyncedCount() + " Records");
                 Toast.makeText(getApplicationContext(), "Absence Recorded", Toast.LENGTH_SHORT).show();
             }
         });
 
-//        show.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-//                records.setText("");
-//                if (getUsername().isEmpty() || getPassword().isEmpty()) {
-//                    Toast.makeText(getApplicationContext(), "Please provide a username and password for MySQL database", Toast.LENGTH_SHORT).show();
-//                }
-//                else {
-//                    RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
-//                    String showURL = "https://oak.ppws.vt.edu/~cs4624/post/show.php";
-//                    StringRequest jsonObjectRequest = new StringRequest(Request.Method.POST, showURL, new Response.Listener<String>() {
-//                        @Override
-//                        public void onResponse(String response) {
-//                                records.append(prettyJson(response));
-//                        }
-//                    }, new Response.ErrorListener() {
-//                        @Override
-//                        public void onErrorResponse(VolleyError error) {
-//                        }
-//
-//                    }){
-//                        @Override
-//                        protected Map<String, String> getParams() throws AuthFailureError {
-//                            Map<String, String> parameters = new HashMap<String, String>();
-//                            parameters.put("username", getUsername());
-//                            parameters.put("password", getPassword());
-//                            return parameters;
-//                        }
-//                    };
-//                    requestQueue.add(jsonObjectRequest);
-//                }
-//            }
-//        });
-//
         // Gets all the unsynced poison ivy records and inserts them into the database.
         sync_button.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
-                if (getUsername().isEmpty() || getPassword().isEmpty()) {
+                String insertURL = "http://vtpiat.netau.net/insert.php";
+                //String insertURL = "https://oak.ppws.vt.edu/~cs4624/post/insert.php";
+                if (sharedpreferences.getUsername().isEmpty() || sharedpreferences.getPassword().isEmpty()) {
                     Toast.makeText(getApplicationContext(), "Please provide a username and password for MySQL database", Toast.LENGTH_SHORT).show();
                 }
                 else {
-                    //String insertURL = "https://oak.ppws.vt.edu/~cs4624/post/insert.php";
                     if (!database.getAllUnsyncedPIs().isEmpty()) {
-                        String insertURL = "http://vtpiat.netau.net/insert.php";
                         Toast.makeText(getApplicationContext(), "Updating...", Toast.LENGTH_SHORT).show();
+                        // Create the request que for the StringRequests to be executed
                         RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
                         for (final PoisonIvy pi : database.getAllUnsyncedPIs()) {
-                            //new NukeSSLCerts();
                             StringRequest request = new StringRequest(Request.Method.POST, insertURL, new Response.Listener<String>() {
                                 @Override
                                 public void onResponse(String response) {
@@ -227,14 +170,14 @@ public class MainActivity extends Activity {
                                 public void onErrorResponse(VolleyError error) {
                                     database.updateSyncStatus(pi, false);
                                     sync_button.setText("Sync " + database.getAllUnsyncedCount() + " Records");
-                                    Toast.makeText(getApplicationContext(), error.getLocalizedMessage() + " Error uploading... Please try again", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getApplicationContext(), error.getLocalizedMessage() + "\nError uploading... Please try again", Toast.LENGTH_SHORT).show();
                                 }
                             }) {
                                 @Override
                                 protected Map<String, String> getParams() throws AuthFailureError {
                                     Map<String, String> parameters = new HashMap<String, String>();
-                                    parameters.put("username", getUsername());
-                                    parameters.put("password", getPassword());
+                                    parameters.put("username", sharedpreferences.getUsername());
+                                    parameters.put("password", sharedpreferences.getPassword());
                                     parameters.put("team", pi.getTeam());
                                     parameters.put("plant_id", pi.getPlantId());
                                     parameters.put("plant_type", pi.getType());
@@ -244,23 +187,12 @@ public class MainActivity extends Activity {
                                     return parameters;
                                 }
 
-//                                @Override
-//                                public String getBodyContentType() {
-//                                    return "application/json";
-//                                }
-//
-//                                @Override public Map<String, String> getHeaders() throws AuthFailureError
-//                                {
-//                                    HashMap<String, String> headers = new HashMap<String, String>();
-//                                    headers.put("Content-Type", "application/x-www-form-urlencoded");
-//                                    return headers;
-//                                }
                             };
                             requestQueue.add(request);
                         }
                         Toast.makeText(getApplicationContext(), "Complete", Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(getApplicationContext(), "There is No New Records to Sync", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "There are No New Records to Sync", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -275,51 +207,9 @@ public class MainActivity extends Activity {
                 builder.show();
             }
         });
-
-
-//        backup.setOnClickListener(new View.OnClickListener(){
-//            @Override
-//            public void onClick(View view){
-//                inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-//                backUpDatabaseToSDCard();
-//                Toast.makeText(getApplicationContext(), "Backup Complete", Toast.LENGTH_SHORT).show();
-//            }
-//        });
     }
 
-    public static class NukeSSLCerts {
-        protected static final String TAG = "NukeSSLCerts";
 
-        public static void nuke() {
-            try {
-                TrustManager[] trustAllCerts = new TrustManager[] {
-                        new X509TrustManager() {
-                            public X509Certificate[] getAcceptedIssuers() {
-                                X509Certificate[] myTrustedAnchors = new X509Certificate[0];
-                                return myTrustedAnchors;
-                            }
-
-                            @Override
-                            public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-
-                            @Override
-                            public void checkServerTrusted(X509Certificate[] certs, String authType) {}
-                        }
-                };
-
-                SSLContext sc = SSLContext.getInstance("SSL");
-                sc.init(null, trustAllCerts, new SecureRandom());
-                HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-                HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
-                    @Override
-                    public boolean verify(String arg0, SSLSession arg1) {
-                        return true;
-                    }
-                });
-            } catch (Exception e) {
-            }
-        }
-    }
 
     private CompoundButton.OnCheckedChangeListener btnNavBarOnCheckedChangeListener = new CompoundButton.OnCheckedChangeListener() {
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -340,7 +230,14 @@ public class MainActivity extends Activity {
         }
     };
 
-
+    /**
+     * Once the user accepts the permission this method is called and will return the user to the
+     * home screen
+     *
+     * @param requestCode The request code passed in
+     * @param permissions The requested permissions
+     * @param grantResults The granted results
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -354,10 +251,16 @@ public class MainActivity extends Activity {
         }
     }
 
+    /**
+     * The hardware input listener for the auxiliary port.
+     * @param keyCode
+     * @param event
+     * @return
+     */
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         //String counter_str = Integer.toString(type_counter);
-        Log.d("onKeyDown", "!on key  ");
+        // Log.d("onKeyDown", "!on key  ");
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             switch (keyCode) {
                 case KeyEvent.KEYCODE_VOLUME_UP:                                                            //*****Up button pressed
@@ -387,14 +290,12 @@ public class MainActivity extends Activity {
                     } else if (state == "VINE_COMFIRMED") {                                               // vine present
                         final MediaPlayer mp_present = MediaPlayer.create(this, R.raw.present);
                         mp_present.start();
-                        // Insert Vine Record
                         Toast.makeText(this, "Vine/Linnea present comfirmed", Toast.LENGTH_SHORT).show();
                         state = "IDLE";
                         type_counter = 0;
                     } else if (state == "SHRUB_COMFIRMED") {
                         final MediaPlayer mp_present = MediaPlayer.create(this, R.raw.present);
                         mp_present.start();
-                        // Insert Shrub Record
                         Toast.makeText(this, "Shrub present comfirmed", Toast.LENGTH_SHORT).show();
                         state = "IDLE";
                         type_counter = 0;
@@ -411,19 +312,13 @@ public class MainActivity extends Activity {
                 case KeyEvent.KEYCODE_VOLUME_DOWN:                                                      //*****Down button pressed
                     if (state == "IDLE") {
                         Toast.makeText(this, "Press small round button to start" + counter_key, Toast.LENGTH_SHORT).show();
-                    } else if (state == "ABSENT") {                                                  // vine absent
+                    }  else if (state == "PSorAB") {                                                        //absent
                         final MediaPlayer mp_absent = MediaPlayer.create(this, R.raw.absent);
-                        mp_absent.start();
-                        // Insert Absence Record
+                        // Absent Recorded
                         final String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-                        PoisonIvy poisonIvy = new PoisonIvy(getTeam(), null, "A", location.getLatitude(), location.getLongitude(), timeStamp, false);
+                        PoisonIvy poisonIvy = new PoisonIvy(sharedpreferences.getTeam(), null, "A", location.getLatitude(), location.getLongitude(), timeStamp, false);
                         database.addPI(poisonIvy);
                         Toast.makeText(this, "Absence comfirmed", Toast.LENGTH_SHORT).show();
-                        state = "IDLE";
-                        type_counter = 0;
-                    } else if (state == "PSorAB") {                                                        //absent
-                        final MediaPlayer mp_absent = MediaPlayer.create(this, R.raw.absent);
-                        Toast.makeText(this, "Absent", Toast.LENGTH_SHORT).show();
                         mp_absent.start();
                         state = "IDLE";
                     }
@@ -440,40 +335,30 @@ public class MainActivity extends Activity {
                         final MediaPlayer mp_present = MediaPlayer.create(this, R.raw.present);
                         mp_present.start();
                         Toast.makeText(this, "Vine present comfirmed", Toast.LENGTH_SHORT).show();
+                        // Vine Recorded
                         final String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-                        PoisonIvy poisonIvy = new PoisonIvy(getTeam(), null, "V", location.getLatitude(), location.getLongitude(), timeStamp, false);
+                        PoisonIvy poisonIvy = new PoisonIvy(sharedpreferences.getTeam(), null, "V", location.getLatitude(), location.getLongitude(), timeStamp, false);
                         database.addPI(poisonIvy);
                         state = "IDLE";
                         type_counter = 0;
-                        //mp_present.stop();
                     } else if (type_counter == SHRUB && state == "CHOOSE") {
                         final MediaPlayer mp_present = MediaPlayer.create(this, R.raw.present);
                         mp_present.start();
                         Toast.makeText(this, "Shrub present comfirmed", Toast.LENGTH_SHORT).show();
+                        // Shrub Recorded
                         final String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-                        PoisonIvy poisonIvy = new PoisonIvy(getTeam(), null, "S", location.getLatitude(), location.getLongitude(), timeStamp, false);
+                        PoisonIvy poisonIvy = new PoisonIvy(sharedpreferences.getTeam(), null, "S", location.getLatitude(), location.getLongitude(), timeStamp, false);
                         database.addPI(poisonIvy);
                         state = "IDLE";
                         type_counter = 0;
-                        //mp_present.stop();
                     } else if (type_counter == CREPPING && state == "CHOOSE") {
                         final MediaPlayer mp_present = MediaPlayer.create(this, R.raw.present);
                         mp_present.start();
                         Toast.makeText(this, "Creeping present comfirmed", Toast.LENGTH_SHORT).show();
+                        // Creeping Recorded
                         final String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-                        PoisonIvy poisonIvy = new PoisonIvy(getTeam(), null, "C", location.getLatitude(), location.getLongitude(), timeStamp, false);
+                        PoisonIvy poisonIvy = new PoisonIvy(sharedpreferences.getTeam(), null, "C", location.getLatitude(), location.getLongitude(), timeStamp, false);
                         database.addPI(poisonIvy);
-                        state = "IDLE";
-                        type_counter = 0;
-                    }
-                    else if (state == "ABSENT") {                                                  // vine absent
-                        final MediaPlayer mp_absent = MediaPlayer.create(this, R.raw.absent);
-                        mp_absent.start();
-                        // Insert Absence Record
-                        final String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-                        PoisonIvy poisonIvy = new PoisonIvy(getTeam(), null, "A", location.getLatitude(), location.getLongitude(), timeStamp, false);
-                        database.addPI(poisonIvy);
-                        Toast.makeText(this, "Absence comfirmed", Toast.LENGTH_SHORT).show();
                         state = "IDLE";
                         type_counter = 0;
                     }
@@ -484,85 +369,63 @@ public class MainActivity extends Activity {
         return onKeyDown(keyCode, event);
     }
 
-    private String getUsername()
-    {
-        return sharedpreferences.getString(Username, "");
-    }
-
-    private String getPassword()
-    {
-        return sharedpreferences.getString(Password, "");
-    }
-
-    private String getTeam()
-    {
-        return sharedpreferences.getString(Team, "");
-    }
-
-
-    private String prettyJson(String uglyStr){
-        int spacesToIndentEachLevel = 2;
-        try {
-            return new JSONObject(uglyStr).toString(spacesToIndentEachLevel);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return "Error";
-    }
-
-
-    public static HashSet<String> getExternalMounts() {
-        final HashSet<String> out = new HashSet<String>();
-        String reg = "(?i).*vold.*(vfat|ntfs|exfat|fat32|ext3|ext4).*rw.*";
-        String s = "";
-        try {
-            final Process process = new ProcessBuilder().command("mount")
-                    .redirectErrorStream(true).start();
-            process.waitFor();
-            final InputStream is = process.getInputStream();
-            final byte[] buffer = new byte[1024];
-            while (is.read(buffer) != -1) {
-                s = s + new String(buffer);
-            }
-            is.close();
-        } catch (final Exception e) {
-            e.printStackTrace();
-        }
-
-        // parse output
-        final String[] lines = s.split("\n");
-        for (String line : lines) {
-            if (!line.toLowerCase(Locale.US).contains("asec")) {
-                if (line.matches(reg)) {
-                    String[] parts = line.split(" ");
-                    for (String part : parts) {
-                        if (part.startsWith("/"))
-                            if (!part.toLowerCase(Locale.US).contains("vold"))
-                                out.add(part);
-                    }
-                }
-            }
-        }
-        return out;
-    }
-
-    private void getLocation(){
-        location = new GPSTracker(getApplicationContext(), this);
-        if (location.canGetLocation()) {
-
-            latitude = location.getLatitude();
-            longitude = location.getLongitude();
-
-            Toast.makeText(
-                    getApplicationContext(),
-                    "Your Location is - \nLat: " + latitude + "\nLong: "
-                            + longitude, Toast.LENGTH_LONG).show();
-        } else {
-            // can't get location
-            // GPS or Network is not enabled
-            // Ask user to enable GPS/network in settings
-            location.showSettingsAlert();
-        }
-    }
-
+//    @Override
+//    public boolean onSingleTapConfirmed(MotionEvent e) {
+//        return false;
+//    }
+//
+//    @Override
+//    public boolean onDoubleTap(MotionEvent e) {
+//
+//        return false;
+//    }
+//
+//    @Override
+//    public boolean onDoubleTapEvent(MotionEvent e) {
+//        Toast.makeText(this, "double tap", Toast.LENGTH_SHORT).show();
+//        return false;
+//    }
+//
+//    @Override
+//    public boolean onDown(MotionEvent e) {
+//        return false;
+//    }
+//
+//    @Override
+//    public void onShowPress(MotionEvent e) {
+//
+//    }
+//
+//    @Override
+//    public boolean onSingleTapUp(MotionEvent e) {
+//        return false;
+//    }
+//
+//    @Override
+//    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+//
+//        return false;
+//    }
+//
+//    @Override
+//    public void onLongPress(MotionEvent e) {
+//        WindowManager.LayoutParams lp = getWindow().getAttributes();
+//        float brightness = 0.001f;
+//        lp.screenBrightness = brightness;
+//        getWindow().setAttributes(lp);
+//        Toast toast = new Toast(getApplicationContext());
+//        toast.makeText(this, "long press", Toast.LENGTH_SHORT).show();
+//        toast.setGravity(Gravity.TOP | Gravity.LEFT, 0, 0);
+//
+//    }
+//
+//    @Override
+//    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+//        WindowManager.LayoutParams lp = getWindow().getAttributes();
+//        float brightness = 1f;
+//        lp.screenBrightness = brightness;
+//        getWindow().setAttributes(lp);
+//        Toast.makeText(this, "fling", Toast.LENGTH_SHORT).show();
+//        return false;
+//    }
 }
