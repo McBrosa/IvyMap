@@ -1,3 +1,10 @@
+/**
+ * Handles inserting and viewing the data stored in the local SQLite database.
+ *
+ * @author Nathan Rosa
+ * @date 04/28/2016
+ */
+
 package com.cs4624.poison.ivymap;
 
 import java.util.ArrayList;
@@ -9,9 +16,6 @@ import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.view.Surface;
-import android.view.View;
-import android.view.WindowManager;
 
 public class DatabaseHandler extends SQLiteOpenHelper {
 
@@ -99,22 +103,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.close(); // Closing database connection
     }
 
-//    PoisonIvy getPI(int id) {
-//        SQLiteDatabase db = this.getReadableDatabase();
-//
-//        Cursor cursor = db.query(TABLE_NAME, new String[] { COLUMN_NAME_ID,
-//                        COLUMN_NAME_LATITUDE, COLUMN_NAME_LONGITUDE }, COLUMN_NAME_ID + "=?",
-//                new String[] { String.valueOf(id) }, null, null, null, null);
-//        if (cursor != null)
-//            cursor.moveToFirst();
-//
-//        PI poisonIvy = new PI(cursor.getString(0), Integer.parseInt(cursor.getString(0)),
-//                cursor.getString(1), cursor.getString(2));
-//        PoisonIvy poisonIvy = new PoisonIvy(cursor.getString(0),Double.parseDouble(cursor.getString(1)),Double.parseDouble(cursor.getString(2)), cursor.getString(3), Boolean.parseBoolean(cursor.getString(4)));
-//        // return contact
-//        return poisonIvy;
-//    }
-
     /**
      * Gets a list of all the PoisonIvy Objects who have a sync value of
      * false.
@@ -192,7 +180,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
 
-    // Getting contacts Count
+    /**
+     * Get he number of poison ivy records
+     * @return
+     */
     public int getPICount() {
         String countQuery = "SELECT  * FROM " + TABLE_NAME;
         SQLiteDatabase db = this.getReadableDatabase();
@@ -203,6 +194,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return count;
     }
 
+    /**
+     * Read from the database. Will read less columns from the database when vertical
+     * for display purposes. Will display all the columns when horizontal since there is more room.
+     * @param context
+     * @return
+     */
     public Cursor readEntry(Context context) {
         SQLiteDatabase db = this.getWritableDatabase();
         String[] allColumns;
@@ -252,6 +249,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return tableString;
     }
 
+    /**
+     * Returns the database name
+     * @return database name
+     */
     public String getDatabaseName()
     {
         return DATABASE_NAME;

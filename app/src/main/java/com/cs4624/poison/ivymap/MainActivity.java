@@ -1,18 +1,27 @@
+/**
+ * The MainActivity is the represent the Home screen of the PIAT application and all of its
+ * functionality.
+ *
+ * @author Nathan Rosa, Qi Bing
+ * @date 04/28/2016
+ */
 package com.cs4624.poison.ivymap;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.support.v4.view.GestureDetectorCompat;
+import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -32,13 +41,19 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements GestureDetector.OnGestureListener,
+        GestureDetector.OnDoubleTapListener{
 
+    // Home screen buttons
     private Button absent_button, present_button, sync_button, currentL_button;
+    // GPS location object that syncs the users location
     private GPSTracker location;
+    // Database handler for the local SQLite database on the phone
     private DatabaseHandler database;
+    // The settings the user inputs on the settings screen
     private AppPreferences sharedpreferences;
 
+    // Used for the FSA in the onKeyDown function
     private String state = "IDLE";
     private int counter_key = 0;
     private static final int VINE = 1;
@@ -46,6 +61,12 @@ public class MainActivity extends Activity {
     private static final int CREPPING = 3;
     private int type_counter = 0;
 
+    // Detects gestures for application intereactions
+    private GestureDetectorCompat mDetector;
+
+    /**
+     * Initializes the application and adds the buttons and nav bar
+     */
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -55,7 +76,9 @@ public class MainActivity extends Activity {
         database = new DatabaseHandler(getApplicationContext());
         // Set up shared preferences if there are any.
         sharedpreferences = new AppPreferences(getApplicationContext());
-
+        // Set up the gesture listener
+        mDetector = new GestureDetectorCompat(this,this);
+        mDetector.setOnDoubleTapListener(this);
         // Initialize buttons and views
         present_button = (Button) findViewById(R.id.present_button);
         absent_button = (Button) findViewById(R.id.absent_button);
@@ -137,6 +160,7 @@ public class MainActivity extends Activity {
                 PoisonIvy poisonIvy = new PoisonIvy(sharedpreferences.getTeam(), null, "A", location.getLatitude(), location.getLongitude(), timeStamp, false);
                 database.addPI(poisonIvy);
 
+                // Update the home screen with the corret number of records that now need to be synced
                 sync_button.setText("Sync " + database.getAllUnsyncedCount() + " Records");
                 Toast.makeText(getApplicationContext(), "Absence Recorded", Toast.LENGTH_SHORT).show();
             }
@@ -146,8 +170,10 @@ public class MainActivity extends Activity {
         sync_button.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
-                String insertURL = "http://vtpiat.netau.net/insert.php";
-                //String insertURL = "https://oak.ppws.vt.edu/~cs4624/post/insert.php";
+                // The database url that the request will be made too.
+                //String insertURL = "http://vtpiat.netau.net/insert.php";
+                String insertURL = "https://oak.ppws.vt.edu/~cs4624/insert.php";
+                // Check to make sure a username and password has been entered.
                 if (sharedpreferences.getUsername().isEmpty() || sharedpreferences.getPassword().isEmpty()) {
                     Toast.makeText(getApplicationContext(), "Please provide a username and password for MySQL database", Toast.LENGTH_SHORT).show();
                 }
@@ -168,6 +194,7 @@ public class MainActivity extends Activity {
                             }, new Response.ErrorListener() {
                                 @Override
                                 public void onErrorResponse(VolleyError error) {
+                                    // If there is an error set the sync value to false for the record
                                     database.updateSyncStatus(pi, false);
                                     sync_button.setText("Sync " + database.getAllUnsyncedCount() + " Records");
                                     Toast.makeText(getApplicationContext(), error.getLocalizedMessage() + "\nError uploading... Please try again", Toast.LENGTH_SHORT).show();
@@ -175,6 +202,8 @@ public class MainActivity extends Activity {
                             }) {
                                 @Override
                                 protected Map<String, String> getParams() throws AuthFailureError {
+                                    // The paramaters that get passed into the POST request to be
+                                    // inserted into the database
                                     Map<String, String> parameters = new HashMap<String, String>();
                                     parameters.put("username", sharedpreferences.getUsername());
                                     parameters.put("password", sharedpreferences.getPassword());
@@ -200,6 +229,7 @@ public class MainActivity extends Activity {
 
         currentL_button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View arg0) {
+                // Get the most current location and display to the user
                 AlertDialog.Builder builder = new AlertDialog.Builder(arg0.getContext())
                         .setTitle("Coordinates:")
                         .setMessage("Lat: " + Double.toString(location.getLatitude()) + "\nLong: " +
@@ -209,8 +239,9 @@ public class MainActivity extends Activity {
         });
     }
 
-
-
+    /**
+     * Gives the navigation bar the capability to switch between activities (screens)
+     */
     private CompoundButton.OnCheckedChangeListener btnNavBarOnCheckedChangeListener = new CompoundButton.OnCheckedChangeListener() {
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             switch (buttonView.getId()) {
@@ -369,63 +400,73 @@ public class MainActivity extends Activity {
         return onKeyDown(keyCode, event);
     }
 
-//    @Override
-//    public boolean onSingleTapConfirmed(MotionEvent e) {
-//        return false;
-//    }
-//
-//    @Override
-//    public boolean onDoubleTap(MotionEvent e) {
-//
-//        return false;
-//    }
-//
-//    @Override
-//    public boolean onDoubleTapEvent(MotionEvent e) {
-//        Toast.makeText(this, "double tap", Toast.LENGTH_SHORT).show();
-//        return false;
-//    }
-//
-//    @Override
-//    public boolean onDown(MotionEvent e) {
-//        return false;
-//    }
-//
-//    @Override
-//    public void onShowPress(MotionEvent e) {
-//
-//    }
-//
-//    @Override
-//    public boolean onSingleTapUp(MotionEvent e) {
-//        return false;
-//    }
-//
-//    @Override
-//    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-//
-//        return false;
-//    }
-//
-//    @Override
-//    public void onLongPress(MotionEvent e) {
-//        WindowManager.LayoutParams lp = getWindow().getAttributes();
-//        float brightness = 0.001f;
-//        lp.screenBrightness = brightness;
-//        getWindow().setAttributes(lp);
-//        Toast toast = new Toast(getApplicationContext());
-//        toast.makeText(this, "long press", Toast.LENGTH_SHORT).show();
-//        toast.setGravity(Gravity.TOP | Gravity.LEFT, 0, 0);
-//
-//    }
-//
-//    @Override
-//    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-//        WindowManager.LayoutParams lp = getWindow().getAttributes();
-//        float brightness = 1f;
-//        lp.screenBrightness = brightness;
-//        getWindow().setAttributes(lp);
-//        Toast.makeText(this, "fling", Toast.LENGTH_SHORT).show();
-//        return false;
-//    }
+    public boolean onTouchEvent(MotionEvent event) {
+        this.mDetector.onTouchEvent(event);
+        return super.onTouchEvent(event);
+    }
+
+    @Override
+    public boolean onSingleTapConfirmed(MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public boolean onDoubleTap(MotionEvent e) {
+
+        return false;
+    }
+
+    @Override
+    public boolean onDoubleTapEvent(MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public boolean onDown(MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public void onShowPress(MotionEvent e) {
+
+    }
+
+    @Override
+    public boolean onSingleTapUp(MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+        return false;
+    }
+
+    /**
+     * On long press the screen will dim
+     * @param e
+     */
+    @Override
+    public void onLongPress(MotionEvent e) {
+        WindowManager.LayoutParams lp = getWindow().getAttributes();
+        float brightness = 0.001f;
+        lp.screenBrightness = brightness;
+        getWindow().setAttributes(lp);
+    }
+
+    /**
+     * On a fling the screen will brighten up
+     * @param e1
+     * @param e2
+     * @param velocityX
+     * @param velocityY
+     * @return
+     */
+    @Override
+    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+        WindowManager.LayoutParams lp = getWindow().getAttributes();
+        float brightness = 1f;
+        lp.screenBrightness = brightness;
+        getWindow().setAttributes(lp);
+        return false;
+    }
 }

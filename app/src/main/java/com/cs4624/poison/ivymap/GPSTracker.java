@@ -1,12 +1,11 @@
-/*
-* This class provides network location and GPS services. It first tries to get a location
-* base on network location and then resorts to GPS. The errors are due to Android 6.0 which
-* requires permission to access users location, this is handled in the MainActivity.
-*
-* @author Nathan Rosa
-* @date 4/3/16
-* @version 1.0
-*/
+/**
+ * This class provides network location and GPS services. It first tries to get a location
+ * base on network location and then resorts to GPS. The errors are due to Android 6.0 which
+ * requires permission to access users location, this is handled in the MainActivity.
+ *
+ * @author Nathan Rosa
+ * @date 4/28/2016
+ */
 
 package com.cs4624.poison.ivymap;
 
@@ -26,7 +25,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
-import android.widget.TextView;
 import android.widget.Toast;
 
 public class GPSTracker extends Service implements LocationListener {
@@ -135,16 +133,6 @@ public class GPSTracker extends Service implements LocationListener {
 
         return location;
     }
-
-//    /**
-//     * Stop using GPS listener
-//     * Calling this function will stop using GPS in your app
-//     * */
-//    public void stopUsingGPS(){
-//        if(locationManager != null){
-//            locationManager.removeUpdates(GPSTracker.this);
-//        }
-//    }
 
     /**
      * Function to get latitude

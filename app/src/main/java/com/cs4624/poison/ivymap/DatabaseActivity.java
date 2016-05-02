@@ -1,9 +1,10 @@
-/*
-* Displays the local table in an activity.
-*
-* @date 4/10/16
-* @version 1.0
-*/
+/**
+ * Displays the local database
+ *
+ * @author Nathan Rosa
+ * @date 04/28/2016
+ */
+
 package com.cs4624.poison.ivymap;
 
 import android.app.Activity;
@@ -35,6 +36,7 @@ public class DatabaseActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_database);
 
+        // Initialized the table and the delete button.
         button_delete = (Button) findViewById(R.id.button_delete);
         table_layout = (TableLayout) findViewById(R.id.tableLayout1);
 
@@ -47,12 +49,13 @@ public class DatabaseActivity extends Activity {
         radioButton = (RadioButton) findViewById(R.id.btnSettings);
         radioButton.setOnCheckedChangeListener(btnNavBarOnCheckedChangeListener);
 
+        // Database handler for viewing data
         database = new DatabaseHandler(getApplicationContext());
         BuildTable();
 
-        /*
-            On click deletes the last record. If there are no more records and is click
-            the data base will be reset.
+        /**
+         *  On click deletes the last record. If there are no more records and is click
+         *  the data base will be reset.
          */
         button_delete.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -111,8 +114,8 @@ public class DatabaseActivity extends Activity {
         }
     };
 
-    /*
-        Build a TextView Representation of the local SQLite table
+    /**
+     *  Build a TextView Representation of the local SQLite table
     */
     private void BuildTable() {
         Cursor c = database.readEntry(getApplicationContext());
@@ -120,7 +123,7 @@ public class DatabaseActivity extends Activity {
         int rows = c.getCount();
         int cols = c.getColumnCount();
 
-        // Headers for table
+        // Get and display headers for the table.
         TableRow header = new TableRow(this);
         header.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,
                 LayoutParams.WRAP_CONTENT));
@@ -147,6 +150,7 @@ public class DatabaseActivity extends Activity {
             // inner for loop
             for (int j = 0; j < cols; j++) {
                 TextView tv = new TextView(this);
+                // Alternate colors for rows
                 if (i % 2 != 0) {
                     tv.setBackgroundResource(R.drawable.row_color);
                 } else {
@@ -166,6 +170,9 @@ public class DatabaseActivity extends Activity {
         database.close();
     }
 
+    /**
+     * When displaying the table this will display a loading screen if the process will take some time
+     */
     private class MyAsync extends AsyncTask<Void, Void, Void> {
         @Override
         protected void onPreExecute() {
@@ -194,6 +201,9 @@ public class DatabaseActivity extends Activity {
         }
     }
 
+    /**
+     * Disable the back button
+     */
     @Override
     public void onBackPressed() {
     }
